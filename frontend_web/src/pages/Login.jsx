@@ -38,7 +38,6 @@ const Login = () => {
 
       login(token, user);
       navigate('/dashboard');
-      console.log(response)
       
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Login failed');

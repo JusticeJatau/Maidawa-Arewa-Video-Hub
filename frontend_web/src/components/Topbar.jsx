@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Menu, Bell, Search, ChevronDown, User } from 'lucide-react';
+import { getUser } from '../utils/auth';
 
 const Topbar = ({ toggleSidebar }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const user = getUser();
 
   return (
     <header className="sticky top-0 z-10 bg-white border-b border-gray-200">
@@ -47,8 +49,8 @@ const Topbar = ({ toggleSidebar }) => {
                 A
               </div>
               <div className="hidden lg:block text-left">
-                <p className="text-sm font-medium text-gray-900">Admin User</p>
-                <p className="text-xs text-gray-500">Super Admin</p>
+                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
               </div>
               <ChevronDown size={16} className="text-gray-400" />
             </button>
@@ -62,8 +64,8 @@ const Topbar = ({ toggleSidebar }) => {
                 />
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
                   <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-medium text-gray-900">Admin User</p>
-                    <p className="text-xs text-gray-500">admin@example.com</p>
+                    <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
                   </div>
                   <a
                     href="#"

@@ -23,6 +23,7 @@ const Dashboard = () => {
   });
   
   const [recentVideos, setRecentVideos] = useState([]);
+  const [activityData, setActivityData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,33 +33,33 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const response = await API.get('/dashboard/stats');
+      const data = response.data
+
+      const activityData = data.activityData;
+      const platformStats = data.platformStats;
+      const recentVideos = data.recentVideos;
+      const totals = data.totals
+
+      setActivityData(activityData)
+
+      console.log(data)
+
+      const BASE_URL = "http://localhost:5000"; 
       
-      // Mock data - replace with actual API call
       setStats({
-        // totalVideos: 156,
-        // totalUsers: 42,
-        // totalCategories: 8,
-        // totalViews: 124560,
-        totalVideos: 0,
-        totalUsers: 0,
-        totalCategories: 0,
-        totalViews: 0,
+        totalVideos: totals.totalVideos,
+        totalUsers: totals.totalUsers,
+        totalCategories: totals.totalCategories,
+        totalViews: totals.totalViews,
       });
-      
-      setRecentVideos([
-        // { id: 1, title: 'Getting Started with React', views: 12345, duration: '15:30', uploaded: '2 hours ago' },
-        // { id: 2, title: 'Advanced JavaScript Patterns', views: 8567, duration: '22:15', uploaded: '1 day ago' },
-        // { id: 3, title: 'CSS Grid Complete Guide', views: 23456, duration: '18:45', uploaded: '2 days ago' },
-        // { id: 4, title: 'TypeScript for Beginners', views: 5678, duration: '25:10', uploaded: '3 days ago' },
-        // { id: 5, title: 'Building REST APIs', views: 9876, duration: '20:30', uploaded: '4 days ago' },
-      ]);
-      
-      // Actual API call would look like:
-      // const response = await API.get('/dashboard/stats');
-      // setStats(response.data.stats);
-      // setRecentVideos(response.data.recentVideos);
+
+      const videos = recentVideos.map(video=>({
+        ...video,
+        thumbnail:`${BASE_URL}${video.thumbnail}`,
+      }))
+      setRecentVideos(videos);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -101,15 +102,15 @@ const Dashboard = () => {
     },
   ];
 
-  const activityData = [
-    { month: 'Jan', videos: 0, views: 0 },
-    { month: 'Feb', videos: 0, views: 0 },
-    { month: 'Mar', videos: 0, views: 0 },
-    { month: 'Apr', videos: 0, views: 0 },
-    { month: 'May', videos: 0, views: 0 },
-    { month: 'Jun', videos: 0, views: 0 },
-    { month: 'Jul', videos: 0, views: 0 },
-  ];
+  // const activityData = [
+  //   { month: 'Jan', videos: 0, views: 0 },
+  //   { month: 'Feb', videos: 0, views: 0 },
+  //   { month: 'Mar', videos: 0, views: 0 },
+  //   { month: 'Apr', videos: 0, views: 0 },
+  //   { month: 'May', videos: 0, views: 0 },
+  //   { month: 'Jun', videos: 0, views: 0 },
+  //   { month: 'Jul', videos: 0, views: 0 },
+  // ];
 
   return (
     <div className="space-y-6">
@@ -275,8 +276,15 @@ const Dashboard = () => {
                 <tr key={video.id} className="hover:bg-gray-50">
                   <td className="py-4 px-6">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded flex items-center justify-center mr-3">
+                      {/* <div className="flex-shrink-0 h-10 w-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded flex items-center justify-center mr-3">
                         <Video size={20} className="text-white" />
+                      </div> */}
+                      <div className="flex-shrink-0 h-12 w-20 rounded overflow-hidden bg-gray-100">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div>
                         <div className="text-sm font-medium text-gray-900">{video.title}</div>

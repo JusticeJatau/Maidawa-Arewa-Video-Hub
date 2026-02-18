@@ -165,8 +165,6 @@ const Videos = () => {
         delete newVideo.isPublished
         delete newVideo.video
         delete newVideo.thumbnail
-
-        console.log(newVideo)
       }else{
         // formData.append("video", newVideo);
         Object.entries(addForm).forEach(([key, value]) => {
@@ -182,8 +180,8 @@ const Videos = () => {
       const response = await API.post('/videos/create', addForm.source === "youtube"? newVideo:formData);
       setVideos([response.data, ...videos]);
       
-      // setShowAddModal(false);
-      // resetAddForm();
+      setShowAddModal(false);
+      resetAddForm();
       
     } catch (error) {
       console.error('Error adding video:', error);

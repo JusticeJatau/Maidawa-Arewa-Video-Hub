@@ -11,10 +11,12 @@ import {
   LogOut
 } from 'lucide-react';
 import { logout } from '../utils/auth';
+import { getUser } from '../utils/auth';
 
 const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const location = useLocation();
   const [activeSubmenu, setActiveSubmenu] = useState(null);
+  const user = getUser();
 
   const menuItems = [
     {
@@ -187,8 +189,8 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 A
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-900">Admin User</p>
-                <p className="text-xs text-gray-500">Super Admin</p>
+                <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                <p className="text-xs text-gray-500">{user.role}</p>
               </div>
             </div>
           </div>

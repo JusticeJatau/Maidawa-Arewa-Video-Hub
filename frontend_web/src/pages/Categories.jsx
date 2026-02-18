@@ -62,28 +62,7 @@ const Categories = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-    //   // Simulate API call
-    //   await new Promise(resolve => setTimeout(resolve, 800));
-      
-    //   // Mock data
-    //   const mockCategories = [
-    //     { id: 1, name: 'Programming', slug: 'programming', description: 'Programming tutorials and courses', videoCount: 45, lastUpdated: '2024-01-15', isActive: true },
-    //     { id: 2, name: 'Web Design', slug: 'web-design', description: 'UI/UX design and frontend development', videoCount: 32, lastUpdated: '2024-01-10', isActive: true },
-    //     { id: 3, name: 'Backend Development', slug: 'backend-development', description: 'Server-side programming and APIs', videoCount: 28, lastUpdated: '2024-01-05', isActive: true },
-    //     { id: 4, name: 'Mobile Development', slug: 'mobile-development', description: 'iOS and Android app development', videoCount: 22, lastUpdated: '2024-01-01', isActive: true },
-    //     { id: 5, name: 'Database', slug: 'database', description: 'Database management and optimization', videoCount: 18, lastUpdated: '2023-12-28', isActive: true },
-    //     { id: 6, name: 'DevOps', slug: 'devops', description: 'CI/CD, Docker, and cloud infrastructure', videoCount: 15, lastUpdated: '2023-12-25', isActive: true },
-    //     { id: 7, name: 'AI & Machine Learning', slug: 'ai-ml', description: 'Artificial intelligence and data science', videoCount: 12, lastUpdated: '2023-12-20', isActive: true },
-    //     { id: 8, name: 'Design', slug: 'design', description: 'Graphic design and creative tools', videoCount: 25, lastUpdated: '2023-12-15', isActive: false },
-    //     { id: 9, name: 'Business', slug: 'business', description: 'Entrepreneurship and marketing', videoCount: 20, lastUpdated: '2023-12-10', isActive: true },
-    //     { id: 10, name: 'Personal Development', slug: 'personal-development', description: 'Productivity and soft skills', videoCount: 30, lastUpdated: '2023-12-05', isActive: true },
-    //   ];
-      
-      // setCategories(mockCategories);
-      
-      // Actual API call:
       const response = await API.get('/categories/categories');
-      console.log(response.data)
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
