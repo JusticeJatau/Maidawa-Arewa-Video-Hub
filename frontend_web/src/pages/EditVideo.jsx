@@ -55,8 +55,6 @@ const EditVideo = () => {
       // Replace with your actual API endpoint
       const response = await API.get(`/videos/${videoId}`);
       const videoData = response.data;
-
-      const BASE_URL = "http://localhost:5000";
       
       setVideo(videoData);
       setFormData({
@@ -67,11 +65,11 @@ const EditVideo = () => {
 
         // ✅ append full URL
         videoUrl: videoData.videoUrl
-          ? `${BASE_URL}${videoData.videoUrl}`
+          ? `${import.meta.env.VITE_BACKEND}${videoData.videoUrl}`
           : '',
 
         thumbnailUrl: videoData.thumbnailUrl
-          ? `${BASE_URL}${videoData.thumbnailUrl}`
+          ? `${import.meta.env.VITE_BACKEND}${videoData.thumbnailUrl}`
           : '',
 
         tags: videoData.tags || [],
@@ -189,7 +187,7 @@ const EditVideo = () => {
     const fetchCategories = async () => {
       try {
         // Replace with your actual API endpoint
-        const response = await API.get('/categories/categories');
+        const response = await API.get('/categories');
         setCategories(response.data);
       } catch (err) {
         console.error('Error fetching categories:', err);
