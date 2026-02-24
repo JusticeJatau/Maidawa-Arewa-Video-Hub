@@ -50,7 +50,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/videos/videos:
+ * /api/videos/:
  *   get:
  *     summary: Get all published videos
  *     tags: [Videos]
@@ -64,7 +64,7 @@ const router = express.Router();
  *               items:
  *                 $ref: '#/components/schemas/Video'
  */
-router.get("/videos", getVideos);
+router.get("/", getVideos);
 
 /**
  * @swagger

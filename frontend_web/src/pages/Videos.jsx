@@ -97,8 +97,8 @@ const Videos = () => {
         // { id: 9, title: 'Machine Learning Basics', views: 1234, duration: '45:30', uploaded: '2023-12-10', category: 'AI/ML', tags: ['ml', 'ai', 'basics'], status: 'published', thumbnail: 'https://picsum.photos/seed/video9/300/200' },
         // { id: 10, title: 'DevOps Fundamentals', views: 6789, duration: '38:20', uploaded: '2023-12-05', category: 'DevOps', tags: ['devops', 'ci-cd', 'docker'], status: 'published', thumbnail: 'https://picsum.photos/seed/video10/300/200' },
       ];
-      const response = await API.get('/videos/videos');
-      setVideos(response.data);
+      const response = await API.get('/videos');
+      setVideos(response.data.data);
       
     } catch (error) {
       console.error('Error fetching videos:', error);
@@ -119,18 +119,16 @@ const Videos = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const BASE_URL = "http://localhost:5000"; // adjust if using env variable
-
   const currentVideos = filteredVideos
     .slice(indexOfFirstItem, indexOfLastItem)
     .map(video => ({
       ...video,
       videoUrl: video.videoUrl.startsWith("http")
         ? video.videoUrl // already full URL
-        : `${BASE_URL}${video.videoUrl}`, // prepend base URL
+        : `${import.meta.env.VITE_BACKEND}${video.videoUrl}`, // prepend base URL
       thumbnailUrl: video.thumbnailUrl?.startsWith("http")
         ? video.thumbnailUrl
-        : `${BASE_URL}${video.thumbnailUrl}`,
+        : `${import.meta.env.VITE_BACKEND}${video.thumbnailUrl}`,
     })
   );
 
@@ -172,8 +170,6 @@ const Videos = () => {
             formData.append(key, value);
           }
         });
-
-        console.log(formData)
       }
 
 
@@ -319,7 +315,7 @@ const Videos = () => {
   // const categories = ['Programming', 'Web Design', 'Backend', 'Mobile', 'Database', 'DevOps', 'AI/ML', 'Design'];
 
   const fetchCategories = async()=>{
-    const response = await API.get("/categories/categories")
+    const response = await API.get("/categories")
     
     setCategories(response.data)
   }

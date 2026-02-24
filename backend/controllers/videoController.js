@@ -109,23 +109,49 @@ const updateVideo = async (req, res) => {
 //  }
 // // res.json("Fetching all Videos")
 // }
-const getVideos = async(req, res) => {
- try{
-    const videos = await Video.find()
-    .populate("category","name")
-    .sort({publishedAt: -1})
 
-    res.json(videos)
- }catch(error){
+
+// const getVideos = async(req, res) => {
+//  try{
+//     const videos = await Video.find()
+//     .populate("category","name")
+//     .sort({publishedAt: -1})
+
+//     res.json(videos)
+//  }catch(error){
+//     console.log(error);
+//     res.status(500).json({ message: "Server error" });
+//  }
+// // res.json("Fetching all Videos")
+// }
+
+const getVideos = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, category } = req.query;
+
+    const filter = {};
+    if (category) filter.category = category;
+
+    const videos = await Video.find(filter)
+      .populate("category", "name")
+      .sort({ publishedAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Video.countDocuments(filter);
+    const hasNextPage = page * limit < total;
+    console.log(`Fetched videos (page ${page}):`, videos);
+
+    res.json({ data: videos, hasNextPage });
+  } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
- }
-// res.json("Fetching all Videos")
-}
+  }
+};
 
 const getVideoById = async(req, res) => {
  try{
-   const video = await Video.findById(req.params.id)
+   const video = await Video.findById(req.params.id).populate("category","name")
 
    if(!video) 
       return res.status(404).json({message: "Video not found"})

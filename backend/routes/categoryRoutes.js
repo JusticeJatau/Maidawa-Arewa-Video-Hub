@@ -96,7 +96,7 @@ router.post("/create", auth, createCategory);
  *               items:
  *                 $ref: '#/components/schemas/Category'
  */
-router.get("/categories", getCategories);
+router.get("/", getCategories);
 
 // -------------------------------------
 // Public route: get single category
@@ -126,6 +126,6 @@ router.get("/categories", getCategories);
  *       404:
  *         description: Category not found
  */
-router.get("/categories/:id", getCategory);
+router.get("/:id", getCategory);
 
 export default router;
