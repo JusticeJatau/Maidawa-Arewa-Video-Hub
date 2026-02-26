@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import colors from '../constants/colors';
+import { useTheme } from '../context/ThemeContext';
 
 const CategoryTabs = ({ categories, onCategoryChange }) => {
+  const { theme } = useTheme();
+
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const handleCategorySelect = (category) => {
@@ -10,62 +13,68 @@ const CategoryTabs = ({ categories, onCategoryChange }) => {
     onCategoryChange(category);
   };
 
+  const styles = StyleSheet.create({
+    wrapper: {
+      backgroundColor: theme.background,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border,
+    },
+    container: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      gap: 10,
+    },
+    categoryTab: {
+      paddingHorizontal: 20,
+      paddingVertical: 8,
+      borderRadius: 25,
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    categoryTabActive: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    categoryText: {
+      color: theme.textSecondary,
+      fontSize: 15,
+      fontWeight: '500',
+    },
+    categoryTextActive: {
+      color: theme.text,
+      fontWeight: '600',
+    },
+  });
+
   return (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      style={styles.container}
-    >
-      {categories.map((category, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.categoryTab,
-            selectedCategory === category._id && styles.categoryTabActive
-          ]}
-          onPress={() => handleCategorySelect(category._id)}
-        >
-          <Text style={[
-            styles.categoryText,
-            selectedCategory === category._id && styles.categoryTextActive
-          ]}>
-            {category.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+    <View style={styles.wrapper}>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
+      >
+        {categories.map((category, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.categoryTab,
+              selectedCategory === category._id && styles.categoryTabActive
+            ]}
+            onPress={() => handleCategorySelect(category._id)}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.categoryText,
+              selectedCategory === category._id && styles.categoryTextActive
+            ]}>
+              {category.name}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.background,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    // height: 50,
-  },
-  categoryTab: {
-    height: 30, 
-    paddingHorizontal: 16,
-    paddingVertical: 5,
-    marginRight: 10,
-    borderRadius: 15,
-    backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  categoryTabActive: {
-    backgroundColor: colors.primary,
-  },
-  categoryText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: colors.text,
-    fontWeight: 'bold',
-  },
-});
 
 export default CategoryTabs;

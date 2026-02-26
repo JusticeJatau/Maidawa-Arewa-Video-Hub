@@ -2,7 +2,9 @@ import axios from "axios";
 import { getToken } from "./auth";
 
 const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
-export const SERVER_BASE = API_BASE.replace(/\/api$/, ''); // remove trailing /api
+const PAGE_LIMIT = 10;
+const SERVER_BASE = API_BASE.replace(/\/api$/, ''); // remove trailing /api
+
 
 // create axios instance
 const api = axios.create({
@@ -40,4 +42,4 @@ export const normalizeVideo = (video) => ({
 
 export const normalizeVideos = (videos) => videos.map(normalizeVideo);
 
-export default api;
+export {api, PAGE_LIMIT, SERVER_BASE, API_BASE};

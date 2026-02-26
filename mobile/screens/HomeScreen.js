@@ -11,15 +11,16 @@ import Header from '../components/Header';
 import CategoryTabs from '../components/CategoryTabs';
 import VideoCard from '../components/VideoCard';
 import colors from '../constants/colors';
-import api from '../services/api';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {api, PAGE_LIMIT, SERVER_BASE, API_BASE} from '../services/api';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { normalizeVideo } from '../services/api';
 
-const PAGE_LIMIT = 10;
-const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
-const SERVER_BASE = API_BASE.replace(/\/api$/, '');
+import { useTheme } from '../context/ThemeContext';
+
 
 const HomeScreen = ({ navigation }) => {
+  const { theme } = useTheme();
+
   const [videos, setVideos] = useState([]);
   const [categories, setCategories] = useState([{
     _id: 'All',
@@ -47,7 +48,6 @@ const HomeScreen = ({ navigation }) => {
     try {
       const response = await api.get('/categories');
       setCategories(prev => [...prev, ...response.data]);
-      console.log('Fetched categories:', response.data);
     } catch (err) {
       console.log('Error fetching categories:', err.message);
     }
@@ -62,10 +62,8 @@ const HomeScreen = ({ navigation }) => {
 
       // API call: adjust endpoint according to your backend
       const response = await api.get(
-        `/videos?page=${pageNumber}&limit=${PAGE_LIMIT}&category=${category !== 'All' ? category : ''}`
+        `/videos?page=${pageNumber}&limit=${api.PAGE_LIMIT}&category=${category !== 'All' ? category : ''}`
       );
-      console.log(`Fetched videos for category "${category}" (page ${pageNumber}):`, response.data.data);
-      console.log('Fetched videos:', response.data.data);
 
       // Prevent stale response appending
       if (currentCategoryRef.current !== category) return;
@@ -93,7 +91,6 @@ const HomeScreen = ({ navigation }) => {
 
   // Handle category change
   const handleCategoryChange = (category) => {
-    console.log('Selected category:', category);
     currentCategoryRef.current = category;
     setSelectedCategory(category);
     setPage(1);
@@ -109,19 +106,17 @@ const HomeScreen = ({ navigation }) => {
     navigation.navigate('Login');
   };
 
-  // Optional: Drawer menu button
-  // React.useLayoutEffect(() => {
-  //   navigation.setOptions({
-  //     headerLeft: () => (
-  //       <TouchableOpacity
-  //         onPress={() => navigation.openDrawer()}
-  //         style={{ marginLeft: 15 }}
-  //       >
-  //         <Ionicons name="menu" size={28} color="#000" />
-  //       </TouchableOpacity>
-  //     ),
-  //   });
-  // }, [navigation]);
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      marginBottom: -20,
+      backgroundColor: theme.background,
+    },
+    listContent: {
+      paddingHorizontal: 12,
+      paddingBottom: 0,
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -147,6 +142,7 @@ const HomeScreen = ({ navigation }) => {
             onPress={handleVideoPress}
           />
         )}
+        style={{ marginTop: 20 }}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMore}
@@ -156,15 +152,5 @@ const HomeScreen = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    // flex: 1,
-    backgroundColor: colors.background,
-  },
-  listContent: {
-    paddingBottom: 20,
-  },
-});
 
 export default HomeScreen;

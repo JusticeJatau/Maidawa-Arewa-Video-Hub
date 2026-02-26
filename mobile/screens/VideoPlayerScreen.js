@@ -1,19 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { MaterialIcons } from '@expo/vector-icons';
 import RelatedNews from '../components/RelatedNews';
 import colors from '../constants/colors';
-import api from '../services/api';
+import {api} from '../services/api';
 import { normalizeVideo, normalizeVideos } from '../services/api';
+import { AuthContext } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const VideoPlayerScreen = ({ navigation, route }) => {
+  const { theme } = useTheme();
+ 
   const { videoId } = route.params;
-
+  
   const [video, setVideo] = useState(null);
   const [relatedVideos, setRelatedVideos] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const {isLoggedIn} = useContext(AuthContext);
+
+  const [like, setLike] = useState(false);
+  const [dislike, setDislike] = useState(false);
+
+  const handleLike = async() => {
+    if(!isLoggedIn){
+      navigation.navigate('Login');
+      return;
+    }
+
+    try{
+      await api.post(`/react/${videoId}`, { type: "like" });
+      setLike(true);
+      if(dislike) setDislike(false);
+    }catch(err){
+      console.log("Error liking video:", err.message);
+    }
+  }
+
+  const handleDislike = async() => {
+    if(!isLoggedIn){
+      navigation.navigate('Login');
+      return;
+    }
+    try{
+      await api.post(`/react/${videoId}`, { type: "dislike" });
+      setDislike(true);
+      if(like) setLike(false);
+    }catch(err){
+      console.log("Error disliking video:", err.message);
+    }
+  }
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -21,8 +59,6 @@ const VideoPlayerScreen = ({ navigation, route }) => {
         setLoading(true);
         const response = await api.get(`/videos/${videoId}`);
         setVideo(normalizeVideo(response.data));
-        console.log('Fetched video:', normalizeVideo(response.data));
-        console.log('Fetched video:', response.data);
 
         const relatedVideosResponse = await api.get('/videos');
         
@@ -30,7 +66,6 @@ const VideoPlayerScreen = ({ navigation, route }) => {
           v => v.category?._id === response.data.category?._id && v._id !== videoId
         );
         setRelatedVideos(normalizeVideos(relatedVideosRaw));
-        console.log('Fetched related videos:', normalizeVideos(relatedVideosResponse.data.data));
       } catch (error) {
         console.log('Video fetch error:', error.message);
       } finally {
@@ -41,7 +76,6 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     fetchVideo();
   }, [videoId]);
 
-  // Initialize player only after video is fetched
   const player = useVideoPlayer(video?.videoUrl || '', (p) => {
     p.loop = false;
     p.play();
@@ -51,24 +85,240 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     navigation.navigate('VideoPlayer', { videoId: video._id });
   };
 
+  const formatViews = (views) => {
+    if (views >= 1000000) {
+      return `${(views / 1000000).toFixed(1)}M views`;
+    }
+    if (views >= 1000) {
+      return `${(views / 1000).toFixed(1)}K views`;
+    }
+    return `${views || 0} views`;
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   if (loading || !video) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Loading video...</Text>
         </View>
       </SafeAreaView>
     );
   }
+
+  const styles = StyleSheet.create({
+    container: { 
+      flex: 1, 
+      backgroundColor: theme.background 
+    },
+    loadingContainer: {
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      gap: 12,
+    },
+    loadingText: {
+      color: theme.textSecondary,
+      fontSize: 16,
+    },
+    header: { 
+      flexDirection: 'row', 
+      alignItems: 'center', 
+      justifyContent: 'space-between', 
+      paddingHorizontal: 16, 
+      paddingVertical: 12, 
+      backgroundColor: theme.surface,
+      borderBottomWidth: 1, 
+      borderBottomColor: theme.border,
+    },
+    backButton: { 
+      padding: 8,
+      borderRadius: 20,
+      backgroundColor: theme.background,
+    },
+    headerTitle: { 
+      fontSize: 18, 
+      fontWeight: '600', 
+      color: theme.text,
+      flex: 1,
+      textAlign: 'center',
+      marginHorizontal: 12,
+    },
+    placeholder: { 
+      width: 40 
+    },
+    scrollView: { 
+      flex: 1 
+    },
+    videoPlayer: { 
+      width: '100%', 
+      height: 250, 
+      backgroundColor: theme.surface 
+    },
+    videoView: {
+      width: '100%', 
+      height: '100%',
+    },
+    videoInfo: { 
+      padding: 16,
+    },
+    videoTitle: { 
+      fontSize: 20, 
+      fontWeight: '700', 
+      color: theme.text, 
+      marginBottom: 16, 
+      lineHeight: 28,
+    },
+    channelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+    },
+    channelAvatar: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: theme.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    channelAvatarText: {
+      color: theme.text,
+      fontSize: 18,
+      fontWeight: 'bold',
+    },
+    channelInfo: {
+      flex: 1,
+    },
+    channelName: {
+      color: theme.text,
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 2,
+    },
+    subscriberCount: {
+      color: theme.textSecondary,
+      fontSize: 13,
+    },
+    subscribeButton: {
+      backgroundColor: theme.primary,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      borderRadius: 20,
+    },
+    subscribeText: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    statsRow: {
+      marginBottom: 16,
+    },
+    viewDateContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    videoDate: { 
+      color: theme.textSecondary, 
+      fontSize: 14,
+    },
+    dot: { 
+      width: 4, 
+      height: 4, 
+      borderRadius: 2, 
+      backgroundColor: theme.textSecondary, 
+      marginHorizontal: 8,
+    },
+    videoViews: { 
+      color: theme.textSecondary, 
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    actionButtons: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.surface,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderRadius: 25,
+      gap: 6,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    actionButtonActive: {
+      backgroundColor: 'rgba(10, 132, 255, 0.1)',
+      borderColor: theme.primary,
+    },
+    actionText: {
+      color: theme.textSecondary,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    actionTextActive: {
+      color: theme.primary,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: theme.border,
+      marginVertical: 16,
+    },
+    descriptionTitle: {
+      color: theme.text,
+      fontSize: 16,
+      fontWeight: '600',
+      marginBottom: 8,
+    },
+    videoDescription: { 
+      fontSize: 15, 
+      color: theme.textSecondary, 
+      marginBottom: 16,
+      lineHeight: 22,
+    },
+    categoryContainer: { 
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start', 
+      backgroundColor: theme.surface,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 25,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    category: { 
+      color: theme.primary, 
+      fontSize: 14, 
+      fontWeight: '600',
+    },
+  });
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color={colors.text} />
+          <MaterialIcons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Maidawa Arewa Video Hub</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>MA Video Hub</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -76,7 +326,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
       <View style={styles.videoPlayer}>
         {video && (
           <VideoView
-            style={{ width: '100%', height: '100%' }}
+            style={styles.videoView}
             player={player}
             allowsFullscreen
             allowsPictureInPicture
@@ -85,20 +335,95 @@ const VideoPlayerScreen = ({ navigation, route }) => {
       </View>
 
       {/* Scrollable content */}
-      <ScrollView style={styles.scrollView}>
+      <ScrollView 
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.videoInfo}>
           <Text style={styles.videoTitle}>{video.title}</Text>
-          <Text style={styles.videoDescription}>{video.description}</Text>
-
-          <View style={styles.videoMeta}>
-            <Text style={styles.videoDate}>{video.createdAt}</Text>
-            <View style={styles.dot} />
-            <Text style={styles.videoViews}>{video.views} views</Text>
+          
+          <View style={styles.channelRow}>
+            <View style={styles.channelAvatar}>
+              <Text style={styles.channelAvatarText}>
+                {video.channelName?.[0] || 'M'}
+              </Text>
+            </View>
+            <View style={styles.channelInfo}>
+              <Text style={styles.channelName}>{video.channelName || 'MA Video Hub'}</Text>
+              <Text style={styles.subscriberCount}>1.2K subscribers</Text>
+            </View>
+            <TouchableOpacity style={styles.subscribeButton}>
+              <Text style={styles.subscribeText}>Subscribe</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.categoryContainer}>
-            <Text style={styles.category}>{video.category}</Text>
+          <View style={styles.statsRow}>
+            <View style={styles.viewDateContainer}>
+              <Text style={styles.videoViews}>{formatViews(video.views)}</Text>
+              <View style={styles.dot} />
+              <Text style={styles.videoDate}>{formatDate(video.createdAt)}</Text>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                onPress={handleLike} 
+                style={[styles.actionButton, like && styles.actionButtonActive]}
+              >
+                <MaterialIcons 
+                  name="thumb-up" 
+                  size={20} 
+                  color={like ? theme.primary : theme.textSecondary} 
+                />
+                <Text style={[styles.actionText, like && styles.actionTextActive]}>
+                  {like ? 'Liked' : 'Like'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={handleDislike} 
+                style={[styles.actionButton, dislike && styles.actionButtonActive]}
+              >
+                <MaterialIcons 
+                  name="thumb-down" 
+                  size={20} 
+                  color={dislike ? theme.primary : theme.textSecondary} 
+                />
+                <Text style={[styles.actionText, dislike && styles.actionTextActive]}>
+                  {dislike ? 'Disliked' : 'Dislike'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => navigation.navigate('Comments', { videoId })} 
+                style={styles.actionButton}
+              >
+                <MaterialIcons name="comment" size={20} color={theme.textSecondary} />
+                <Text style={styles.actionText}>Comments</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                onPress={() => Alert.alert("Share", "Share functionality coming soon!")} 
+                style={styles.actionButton}
+              >
+                <MaterialIcons name="share" size={20} color={theme.textSecondary} />
+                <Text style={styles.actionText}>Share</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.descriptionTitle}>Description</Text>
+          <Text style={styles.videoDescription}>
+            {video.description || 'No description available.'}
+          </Text>
+
+          {video.category && (
+            <View style={styles.categoryContainer}>
+              <MaterialIcons name="folder" size={16} color={theme.primary} />
+              <Text style={styles.category}>{video.category}</Text>
+            </View>
+          )}
         </View>
 
         <RelatedNews 
@@ -108,25 +433,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
       </ScrollView>
     </SafeAreaView>
   );
+  
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.border },
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: colors.text },
-  placeholder: { width: 32 },
-  scrollView: { flex: 1 },
-  videoPlayer: { width: '100%', height: 250, backgroundColor: colors.surface },
-  videoInfo: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
-  videoTitle: { fontSize: 22, fontWeight: 'bold', color: colors.text, marginBottom: 12, lineHeight: 28 },
-  videoDescription: { fontSize: 16, color: colors.textSecondary, marginBottom: 12 },
-  videoMeta: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  videoDate: { color: colors.textSecondary, fontSize: 16 },
-  dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.textSecondary, marginHorizontal: 8 },
-  videoViews: { color: colors.textSecondary, fontSize: 16 },
-  categoryContainer: { alignSelf: 'flex-start', backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 16 },
-  category: { color: colors.primary, fontSize: 14, fontWeight: '500' },
-});
 
 export default VideoPlayerScreen;
