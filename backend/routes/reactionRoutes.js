@@ -6,12 +6,20 @@ const router = express.Router()
 
 /**
  * @swagger
- * /api/react:
+ * /api/react/{id}:
  *   post:
  *     summary: React to a video (like, dislike, etc.)
  *     tags: [Reactions]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        required: true
+ *        description: ID of the video to react to
+ *        schema:
+ *          type: string
+ *          example: 6984613caae810391dff7bf1
  *     requestBody:
  *       required: true
  *       content:
@@ -19,17 +27,12 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             required:
- *               - videoId
  *               - reaction
  *             properties:
- *               videoId:
- *                 type: string
- *                 description: ID of the video to react to
- *                 example: 6984613caae810391dff7bf1
  *               reaction:
  *                 type: string
  *                 description: Type of reaction
- *                 enum: [like, dislike, love, funny, sad]
+ *                 enum: [like, dislike]
  *                 example: like
  *     responses:
  *       200:
@@ -53,7 +56,7 @@ const router = express.Router()
  *       404:
  *         description: Video not found
  */
-router.post('/', auth, reactToVideo);
+router.post('/:id', auth, reactToVideo);
 
 
 export default router;

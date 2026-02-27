@@ -21,44 +21,51 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
   const {isLoggedIn} = useContext(AuthContext);
 
-  const [like, setLike] = useState(false);
-  const [dislike, setDislike] = useState(false);
+  const [like, setLike] = useState([]);
+  const [dislike, setDislike] = useState([]);
 
-  const handleLike = async() => {
+  const handleReaction = async(type) => {
     if(!isLoggedIn){
       navigation.navigate('Login');
       return;
     }
 
     try{
-      await api.post(`/react/${videoId}`, { type: "like" });
-      setLike(true);
-      if(dislike) setDislike(false);
+      await api.post(`/react/${videoId}`, { type: type });
     }catch(err){
       console.log("Error liking video:", err.message);
     }
-  }
-
-  const handleDislike = async() => {
-    if(!isLoggedIn){
-      navigation.navigate('Login');
-      return;
+    // alert(type)
+    const data = {name: "Hello"}
+    if(type === "like"){
+      setLike((prev)=>({...prev, userReaction: !prev.userReaction}));
+      setDislike((prev)=>({...prev, userReaction: false}))
     }
-    try{
-      await api.post(`/react/${videoId}`, { type: "dislike" });
-      setDislike(true);
-      if(like) setLike(false);
-    }catch(err){
-      console.log("Error disliking video:", err.message);
+    if(type === "dislike"){
+      setDislike((prev)=>({...prev, userReaction: !prev.userReaction}));
+      setLike((prev)=>({...prev, userReaction: false}))
     }
+    
   }
 
   useEffect(() => {
     const fetchVideo = async () => {
+      const likes = {}
+      const dislikes = {}
+
       try {
         setLoading(true);
         const response = await api.get(`/videos/${videoId}`);
         setVideo(normalizeVideo(response.data));
+
+        setLike({
+          count: response.data.likes,
+          userReaction: response.data.userReaction === "like"? true:false
+        })
+        setDislike({
+          count: response.data.dislikes,
+          userReaction: response.data.userReaction === "dislike"? true:false
+        })
 
         const relatedVideosResponse = await api.get('/videos');
         
@@ -106,17 +113,6 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
-
-  if (loading || !video) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading video...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   const styles = StyleSheet.create({
     container: { 
@@ -311,6 +307,18 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     },
   });
 
+  if (loading || !video) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Loading video...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -366,30 +374,30 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
             <View style={styles.actionButtons}>
               <TouchableOpacity 
-                onPress={handleLike} 
-                style={[styles.actionButton, like && styles.actionButtonActive]}
+                onPress={()=>handleReaction("like")} 
+                style={[styles.actionButton, like.userReaction && styles.actionButtonActive]}
               >
                 <MaterialIcons 
                   name="thumb-up" 
                   size={20} 
-                  color={like ? theme.primary : theme.textSecondary} 
+                  color={like.userReaction ? theme.primary : theme.textSecondary} 
                 />
-                <Text style={[styles.actionText, like && styles.actionTextActive]}>
-                  {like ? 'Liked' : 'Like'}
+                <Text style={[styles.actionText, like.userReaction && styles.actionTextActive]}>
+                  {like.userReaction === "like" ? 'Liked' : 'Like'} 
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity 
-                onPress={handleDislike} 
-                style={[styles.actionButton, dislike && styles.actionButtonActive]}
+                onPress={()=>handleReaction("dislike")} 
+                style={[styles.actionButton, dislike.userReaction && styles.actionButtonActive]}
               >
                 <MaterialIcons 
                   name="thumb-down" 
                   size={20} 
-                  color={dislike ? theme.primary : theme.textSecondary} 
+                  color={dislike.userReaction ? theme.primary : theme.textSecondary} 
                 />
-                <Text style={[styles.actionText, dislike && styles.actionTextActive]}>
-                  {dislike ? 'Disliked' : 'Dislike'}
+                <Text style={[styles.actionText, dislike.userReaction && styles.actionTextActive]}>
+                  {dislike.userReaction ? 'Disliked' : 'Dislike'}
                 </Text>
               </TouchableOpacity>
 

@@ -1,7 +1,8 @@
 import Video from "../models/Video.js";
+import Reaction from "../models/Reaction.js";
+import mongoose from "mongoose";
 
 const createVideo = async (req, res) => {
-   console.log(req.body)
   try {
     const {
       title,
@@ -149,22 +150,63 @@ const getVideos = async (req, res) => {
   }
 };
 
-const getVideoById = async(req, res) => {
- try{
-   const video = await Video.findById(req.params.id).populate("category","name")
+const getVideoById = async (req, res) => {
+  try {
+    const videoId = req.params.id;
 
-   if(!video) 
-      return res.status(404).json({message: "Video not found"})
-   video.views += 1
-   await video.save()
+    const video = await Video.findById(videoId)
+      .populate("category", "name");
 
-   res.json(video)
- }catch(error){
+    if (!video) {
+      return res.status(404).json({ message: "Video not found" });
+    }
+
+    await Video.findByIdAndUpdate(videoId, {
+      $inc: { views: 1 }
+    });
+
+    const userId = req.user?.id;
+    // Aggregate reactions in ONE query
+    const reactionStats = await Reaction.aggregate([
+      { $match: { videoId: video._id } },
+      {
+        $facet: {
+          likes: [
+            { $match: { type: "like" } },
+            { $count: "count" }
+          ],
+          dislikes: [
+            { $match: { type: "dislike" } },
+            { $count: "count" }
+          ],
+          ...(userId
+        ? {
+            userReaction: [
+              { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+              { $project: { type: 1, _id: 0 } },
+            ],
+          }
+          : {}),
+        }
+      }
+    ]);
+
+    const likes = reactionStats[0].likes[0]?.count || 0;
+    const dislikes = reactionStats[0].dislikes[0]?.count || 0;
+    const userReaction = reactionStats[0].userReaction?.[0]?.type || null;
+
+    res.json({
+      ...video.toObject(),
+      likes,
+      dislikes,
+      userReaction
+    });
+
+  } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error" });
- }
-// res.json("Fetching Video")
-}
+  }
+};
 
 const deleteVideo = async(req, res) => {
  try{

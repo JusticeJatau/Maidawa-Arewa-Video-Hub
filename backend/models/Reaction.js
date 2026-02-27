@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 
 const reactionSchema = new mongoose.Schema({
-    videoID:{
+    videoId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
         required: true
     },
-    userID:{
+    userId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
