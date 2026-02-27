@@ -93,10 +93,10 @@ const Header = ({ onLoginPress, onSearch }) => {
       paddingHorizontal: 16,
       paddingVertical: 12,
       borderWidth: 1,
-      borderColor: theme.border,
+      borderColor: theme.borderLight,
     },
     searchInput: {
-      flex: 1,
+      // flex: 1,
       marginLeft: 12,
       color: theme.text,
       fontSize: 16,
