@@ -11,8 +11,10 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const checkToken = async () => {
             const token = await getToken();
-            if(token)
+            if(token){
                 setUserToken(token);
+                setIsLoggedIn(true);
+            }
 
             setLoading(false);
         };
