@@ -7,6 +7,7 @@ export const lightColors = {
   // Background colors
   background: '#F2F2F7',
   surface: '#FFFFFF',
+  surface2: "#dfdfdf",
   surfaceLight: '#F9F9FC',
   
   // Text colors
@@ -53,8 +54,9 @@ export const darkColors = {
   secondary: '#5E5CE6',
   
   // Background colors
-  background: '#000000',
+  background: '#161616',
   surface: '#1C1C1E',
+  surface2: '#1C1C1E',
   surfaceLight: '#2C2C2E',
   
   // Text colors
