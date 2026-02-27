@@ -8,6 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export const getToken = async () => {
   try {
     const token = await AsyncStorage.getItem("jwt_token"); // key you use to store the JWT
+    console.log("Token retrieved from storage:", token);
     return token;
   } catch (error) {
     console.error("Error getting token from storage:", error);
@@ -35,5 +36,15 @@ export const removeToken = async () => {
     await AsyncStorage.removeItem("jwt_token");
   } catch (error) {
     console.error("Error removing token from storage:", error);
+  }
+};
+
+export const seeStorage = async () => {
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const items = await AsyncStorage.multiGet(keys);
+    console.log("AsyncStorage contents:", items);
+  } catch (error) {
+    console.error("Error reading AsyncStorage:", error);
   }
 };
