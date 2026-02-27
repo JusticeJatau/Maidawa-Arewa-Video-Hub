@@ -10,12 +10,15 @@ import {
   Switch,
   Image,
   Modal,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
+
+const { width } = Dimensions.get('window');
 
 const ProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -86,11 +89,17 @@ const ProfileScreen = ({ navigation }) => {
     navigation.replace('Login');
   };
 
-  const renderSectionHeader = (title, icon, onEdit) => (
+  const SectionCard = ({ children, style }) => (
+    <View style={[styles.sectionCard, style]}>
+      {children}
+    </View>
+  );
+
+  const SectionHeader = ({ title, icon, onEdit }) => (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionTitleContainer}>
-        <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-          <MaterialIcons name={icon} size={20} color={theme.primary} />
+        <View style={[styles.iconCircle, { backgroundColor: theme.primary + '20' }]}>
+          <MaterialIcons name={icon} size={22} color={theme.primary} />
         </View>
         <Text style={styles.sectionTitle}>{title}</Text>
       </View>
@@ -103,34 +112,74 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
-  const renderInfoRow = (label, value, icon, field, multiline = false) => (
+  const InfoRow = ({ label, value, icon, field, multiline = false }) => (
     <View style={styles.infoRow}>
-      <View style={styles.infoLabelContainer}>
-        <MaterialIcons name={icon} size={16} color={theme.textTertiary} />
-        <Text style={styles.infoLabel}>{label}</Text>
+      <View style={styles.infoIconContainer}>
+        <MaterialIcons name={icon} size={18} color={theme.textTertiary} />
       </View>
-      {isEditing ? (
-        <TextInput
-          style={[styles.infoInput, multiline && styles.multilineInput]}
-          value={value}
-          onChangeText={(text) => {
-            if (field.includes('.')) {
-              const [section, key] = field.split('.');
-              if (section === 'personal') {
-                setPersonalInfo(prev => ({ ...prev, [key]: text }));
-              } else if (section === 'contact') {
-                setContactInfo(prev => ({ ...prev, [key]: text }));
+      <View style={styles.infoContent}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        {isEditing ? (
+          <TextInput
+            style={[styles.infoInput, multiline && styles.multilineInput]}
+            value={value}
+            onChangeText={(text) => {
+              if (field.includes('.')) {
+                const [section, key] = field.split('.');
+                if (section === 'personal') {
+                  setPersonalInfo(prev => ({ ...prev, [key]: text }));
+                } else if (section === 'contact') {
+                  setContactInfo(prev => ({ ...prev, [key]: text }));
+                }
               }
-            }
-          }}
-          placeholderTextColor={theme.textTertiary}
-          multiline={multiline}
-          numberOfLines={multiline ? 3 : 1}
-        />
-      ) : (
-        <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
-      )}
+            }}
+            placeholderTextColor={theme.textTertiary}
+            multiline={multiline}
+            numberOfLines={multiline ? 3 : 1}
+          />
+        ) : (
+          <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
+        )}
+      </View>
     </View>
+  );
+
+  const PreferenceItem = ({ icon, label, value, onValueChange }) => (
+    <View style={styles.preferenceItem}>
+      <View style={styles.preferenceLeft}>
+        <View style={[styles.iconCircle, { backgroundColor: theme.primary + '20', width: 40, height: 40 }]}>
+          <MaterialIcons name={icon} size={20} color={theme.primary} />
+        </View>
+        <Text style={styles.preferenceLabel}>{label}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ false: theme.border, true: theme.primary }}
+        thumbColor={theme.text}
+        ios_backgroundColor={theme.border}
+      />
+    </View>
+  );
+
+  const ActionItem = ({ icon, label, onPress, danger = false, rightText }) => (
+    <TouchableOpacity style={styles.actionItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.actionLeft}>
+        <View style={[styles.iconCircle, { 
+          backgroundColor: danger ? theme.danger + '20' : theme.primary + '20',
+          width: 40,
+          height: 40
+        }]}>
+          <MaterialIcons name={icon} size={20} color={danger ? theme.danger : theme.primary} />
+        </View>
+        <Text style={[styles.actionLabel, danger && styles.dangerLabel]}>{label}</Text>
+      </View>
+      {rightText ? (
+        <Text style={styles.actionRightText}>{rightText}</Text>
+      ) : (
+        <MaterialIcons name="chevron-right" size={22} color={theme.textTertiary} />
+      )}
+    </TouchableOpacity>
   );
 
   return (
@@ -162,9 +211,10 @@ const ProfileScreen = ({ navigation }) => {
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Profile Image Section */}
-        <View style={styles.profileImageSection}>
+        {/* Profile Header Card */}
+        <View style={styles.profileHeaderCard}>
           <TouchableOpacity 
             onPress={handleImagePick}
             disabled={!isEditing}
@@ -182,152 +232,103 @@ const ProfileScreen = ({ navigation }) => {
             )}
             {isEditing && (
               <View style={styles.cameraIconContainer}>
-                <MaterialIcons name="camera-alt" size={18} color={theme.text} />
+                <MaterialIcons name="camera-alt" size={16} color={theme.text} />
               </View>
             )}
           </TouchableOpacity>
-          {!isEditing && (
-            <>
-              <Text style={styles.profileName}>{personalInfo.fullName}</Text>
+          
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{personalInfo.fullName}</Text>
+            <Text style={styles.profileUsername}>{personalInfo.username}</Text>
+            <View style={styles.memberBadge}>
+              <MaterialIcons name="calendar-today" size={14} color={theme.textTertiary} />
               <Text style={styles.memberSince}>Member since 2024</Text>
-            </>
-          )}
+            </View>
+          </View>
         </View>
 
         {/* Personal Information Section */}
-        <View style={styles.section}>
-          {renderSectionHeader(
-            'Personal Information', 
-            'person-outline',
-            () => setIsEditing(true)
-          )}
+        <SectionCard>
+          <SectionHeader
+            title="Personal Information"
+            icon="person-outline"
+            onEdit={() => setIsEditing(true)}
+          />
           <View style={styles.sectionContent}>
-            {renderInfoRow('Full Name', personalInfo.fullName, 'badge', 'personal.fullName')}
-            {renderInfoRow('Username', personalInfo.username, 'alternate-email', 'personal.username')}
-            {renderInfoRow('Email', personalInfo.email, 'email', 'personal.email')}
-            {renderInfoRow('Bio', personalInfo.bio, 'description', 'personal.bio', true)}
+            <InfoRow label="Full Name" value={personalInfo.fullName} icon="badge" field="personal.fullName" />
+            <InfoRow label="Username" value={personalInfo.username} icon="alternate-email" field="personal.username" />
+            <InfoRow label="Email" value={personalInfo.email} icon="email" field="personal.email" />
+            <InfoRow label="Bio" value={personalInfo.bio} icon="description" field="personal.bio" multiline />
           </View>
-        </View>
+        </SectionCard>
 
         {/* Contact Information Section */}
-        <View style={styles.section}>
-          {renderSectionHeader('Contact Information', 'phone', () => setIsEditing(true))}
+        <SectionCard>
+          <SectionHeader
+            title="Contact Information"
+            icon="phone"
+            onEdit={() => setIsEditing(true)}
+          />
           <View style={styles.sectionContent}>
-            {renderInfoRow('Phone', contactInfo.phone, 'phone', 'contact.phone')}
-            {renderInfoRow('Address', contactInfo.address, 'location-on', 'contact.address')}
-            {renderInfoRow('City', contactInfo.city, 'location-city', 'contact.city')}
-            {renderInfoRow('Country', contactInfo.country, 'public', 'contact.country')}
+            <InfoRow label="Phone" value={contactInfo.phone} icon="phone" field="contact.phone" />
+            <InfoRow label="Address" value={contactInfo.address} icon="location-on" field="contact.address" />
+            <InfoRow label="City" value={contactInfo.city} icon="location-city" field="contact.city" />
+            <InfoRow label="Country" value={contactInfo.country} icon="public" field="contact.country" />
           </View>
-        </View>
+        </SectionCard>
 
         {/* Preferences Section */}
-        <View style={styles.section}>
-          {renderSectionHeader('Preferences', 'settings', null)}
+        <SectionCard>
+          <SectionHeader title="Preferences" icon="settings" />
           <View style={styles.sectionContent}>
-            <View style={styles.preferenceRow}>
-              <View style={styles.preferenceLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="notifications" size={18} color={theme.primary} />
-                </View>
-                <Text style={styles.preferenceLabel}>Email Notifications</Text>
-              </View>
-              <Switch
-                value={preferences.emailNotifications}
-                onValueChange={(value) => 
-                  setPreferences(prev => ({ ...prev, emailNotifications: value }))
-                }
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.text}
-                ios_backgroundColor={theme.border}
-              />
-            </View>
-
-            <View style={styles.preferenceRow}>
-              <View style={styles.preferenceLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="notifications-active" size={18} color={theme.primary} />
-                </View>
-                <Text style={styles.preferenceLabel}>Push Notifications</Text>
-              </View>
-              <Switch
-                value={preferences.pushNotifications}
-                onValueChange={(value) => 
-                  setPreferences(prev => ({ ...prev, pushNotifications: value }))
-                }
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.text}
-                ios_backgroundColor={theme.border}
-              />
-            </View>
-
-            <View style={styles.preferenceRow}>
-              <View style={styles.preferenceLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="history" size={18} color={theme.primary} />
-                </View>
-                <Text style={styles.preferenceLabel}>Save Watch History</Text>
-              </View>
-              <Switch
-                value={preferences.saveHistory}
-                onValueChange={(value) => 
-                  setPreferences(prev => ({ ...prev, saveHistory: value }))
-                }
-                trackColor={{ false: theme.border, true: theme.primary }}
-                thumbColor={theme.text}
-                ios_backgroundColor={theme.border}
-              />
-            </View>
+            <PreferenceItem
+              icon="notifications"
+              label="Email Notifications"
+              value={preferences.emailNotifications}
+              onValueChange={(value) => setPreferences(prev => ({ ...prev, emailNotifications: value }))}
+            />
+            <PreferenceItem
+              icon="notifications-active"
+              label="Push Notifications"
+              value={preferences.pushNotifications}
+              onValueChange={(value) => setPreferences(prev => ({ ...prev, pushNotifications: value }))}
+            />
+            <PreferenceItem
+              icon="history"
+              label="Save Watch History"
+              value={preferences.saveHistory}
+              onValueChange={(value) => setPreferences(prev => ({ ...prev, saveHistory: value }))}
+            />
           </View>
-        </View>
+        </SectionCard>
 
         {/* Account Actions Section */}
-        <View style={styles.section}>
-          {renderSectionHeader('Account', 'security', null)}
+        <SectionCard>
+          <SectionHeader title="Account" icon="security" />
           <View style={styles.sectionContent}>
-            <TouchableOpacity style={styles.accountAction} activeOpacity={0.7}>
-              <View style={styles.actionLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="lock" size={18} color={theme.textSecondary} />
-                </View>
-                <Text style={styles.actionLabel}>Change Password</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={22} color={theme.textTertiary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.accountAction} activeOpacity={0.7}>
-              <View style={styles.actionLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="privacy-tip" size={18} color={theme.textSecondary} />
-                </View>
-                <Text style={styles.actionLabel}>Privacy Settings</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={22} color={theme.textTertiary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.accountAction} activeOpacity={0.7}>
-              <View style={styles.actionLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: theme.surfaceLight }]}>
-                  <MaterialIcons name="help" size={18} color={theme.textSecondary} />
-                </View>
-                <Text style={styles.actionLabel}>Help & Support</Text>
-              </View>
-              <MaterialIcons name="chevron-right" size={22} color={theme.textTertiary} />
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.accountAction, styles.logoutAction]}
+            <ActionItem
+              icon="lock"
+              label="Change Password"
+              onPress={() => Alert.alert('Coming Soon', 'Password change coming soon!')}
+            />
+            <ActionItem
+              icon="privacy-tip"
+              label="Privacy Settings"
+              onPress={() => Alert.alert('Coming Soon', 'Privacy settings coming soon!')}
+            />
+            <ActionItem
+              icon="help"
+              label="Help & Support"
+              onPress={() => Alert.alert('Coming Soon', 'Help center coming soon!')}
+            />
+            <ActionItem
+              icon="logout"
+              label="Logout"
+              danger
               onPress={() => setShowLogoutModal(true)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
-                  <MaterialIcons name="logout" size={18} color={theme.danger} />
-                </View>
-                <Text style={styles.logoutLabel}>Logout</Text>
-              </View>
-            </TouchableOpacity>
+            />
           </View>
-        </View>
+        </SectionCard>
 
         {/* App Info */}
         <View style={styles.appInfo}>
@@ -345,8 +346,8 @@ const ProfileScreen = ({ navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalIcon}>
-              <MaterialIcons name="logout" size={40} color={theme.danger} />
+            <View style={[styles.modalIconCircle, { backgroundColor: theme.danger + '20' }]}>
+              <MaterialIcons name="logout" size={32} color={theme.danger} />
             </View>
             <Text style={styles.modalTitle}>Logout</Text>
             <Text style={styles.modalMessage}>
@@ -384,7 +385,7 @@ const createStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 12,
     backgroundColor: theme.surface,
     borderBottomWidth: 1,
@@ -392,12 +393,12 @@ const createStyles = (theme) => StyleSheet.create({
   },
   backButton: {
     padding: 8,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: theme.background,
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: theme.text,
   },
   headerActions: {
@@ -410,7 +411,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   cancelButtonText: {
     color: theme.textSecondary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
   },
   saveButton: {
@@ -421,7 +422,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   saveButtonText: {
     color: theme.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   placeholder: {
@@ -430,27 +431,37 @@ const createStyles = (theme) => StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  profileImageSection: {
-    alignItems: 'center',
-    paddingVertical: 24,
+  scrollContent: {
+    padding: 16,
+    gap: 16,
+  },
+  profileHeaderCard: {
     backgroundColor: theme.surface,
-    marginBottom: 16,
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   profileImageContainer: {
     position: 'relative',
-    marginBottom: 12,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     borderWidth: 3,
     borderColor: theme.primary,
   },
   profileImagePlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: theme.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -459,7 +470,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   profileImagePlaceholderText: {
     color: theme.text,
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: 'bold',
   },
   cameraIconContainer: {
@@ -467,13 +478,16 @@ const createStyles = (theme) => StyleSheet.create({
     bottom: 0,
     right: 0,
     backgroundColor: theme.surfaceLight,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.primary,
+  },
+  profileInfo: {
+    flex: 1,
   },
   profileName: {
     fontSize: 20,
@@ -481,37 +495,53 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.text,
     marginBottom: 4,
   },
+  profileUsername: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginBottom: 8,
+  },
+  memberBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   memberSince: {
     color: theme.textTertiary,
-    fontSize: 14,
+    fontSize: 12,
   },
-  section: {
-    marginBottom: 20,
+  sectionCard: {
+    backgroundColor: theme.surface,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: theme.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
   },
   sectionTitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: theme.text,
   },
@@ -519,52 +549,61 @@ const createStyles = (theme) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    backgroundColor: theme.primary + '20',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
   },
   editButtonText: {
     color: theme.primary,
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
   },
   sectionContent: {
-    backgroundColor: theme.surface,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   infoRow: {
+    flexDirection: 'row',
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
   },
-  infoLabelContainer: {
-    flexDirection: 'row',
+  infoIconContainer: {
+    width: 24,
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
+    marginRight: 12,
+  },
+  infoContent: {
+    flex: 1,
   },
   infoLabel: {
     color: theme.textTertiary,
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
+    marginBottom: 2,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   infoValue: {
     color: theme.text,
     fontSize: 16,
-    marginLeft: 22,
+    lineHeight: 22,
   },
   infoInput: {
     color: theme.text,
     fontSize: 16,
-    padding: 8,
+    padding: 10,
     backgroundColor: theme.background,
-    borderRadius: 8,
-    marginLeft: 22,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: theme.border,
+    marginTop: 4,
   },
   multilineInput: {
     height: 80,
     textAlignVertical: 'top',
   },
-  preferenceRow: {
+  preferenceItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -580,8 +619,9 @@ const createStyles = (theme) => StyleSheet.create({
   preferenceLabel: {
     color: theme.text,
     fontSize: 15,
+    fontWeight: '500',
   },
-  accountAction: {
+  actionItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -597,27 +637,27 @@ const createStyles = (theme) => StyleSheet.create({
   actionLabel: {
     color: theme.text,
     fontSize: 15,
-  },
-  logoutAction: {
-    borderBottomWidth: 0,
-  },
-  logoutLabel: {
-    color: theme.danger,
-    fontSize: 15,
     fontWeight: '500',
   },
+  dangerLabel: {
+    color: theme.danger,
+  },
+  actionRightText: {
+    color: theme.textTertiary,
+    fontSize: 14,
+  },
   appInfo: {
-    paddingVertical: 24,
+    paddingVertical: 20,
     alignItems: 'center',
   },
   appVersion: {
     color: theme.textTertiary,
-    fontSize: 14,
+    fontSize: 13,
     marginBottom: 4,
   },
   appCopyright: {
     color: theme.textTertiary,
-    fontSize: 12,
+    fontSize: 11,
   },
   modalOverlay: {
     flex: 1,
@@ -627,34 +667,36 @@ const createStyles = (theme) => StyleSheet.create({
   },
   modalContent: {
     backgroundColor: theme.surface,
-    borderRadius: 20,
+    borderRadius: 28,
     padding: 24,
-    width: '80%',
+    width: width * 0.85,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  modalIcon: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(255, 69, 58, 0.1)',
+  modalIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
     color: theme.text,
     marginBottom: 8,
   },
   modalMessage: {
-    fontSize: 16,
+    fontSize: 15,
     color: theme.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -664,7 +706,7 @@ const createStyles = (theme) => StyleSheet.create({
   modalButton: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
   },
   modalCancelButton: {
@@ -674,7 +716,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   modalCancelText: {
     color: theme.textSecondary,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   modalConfirmButton: {
@@ -682,7 +724,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   modalConfirmText: {
     color: theme.text,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import {
   View,
   Text,
@@ -16,9 +16,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { api } from "../services/api";
 import { setToken } from "../services/auth";
+import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
   const { theme } = useTheme();
+  const { login } = useContext(AuthContext);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [loading, setLoading] = useState(false);
@@ -44,6 +46,7 @@ const LoginScreen = ({ navigation }) => {
       
       const { token } = response.data;
       await setToken(token);
+      await login(token);
 
       Alert.alert("Success", "Logged in successfully!");
       navigation.replace("Home");
