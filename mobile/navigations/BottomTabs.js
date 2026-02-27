@@ -37,8 +37,6 @@ export default function BottomTabs() {
           let iconName;
 
           if (route.name === "Home") iconName = "home";
-          else if (route.name === "Trending") iconName = "whatshot";
-          else if (route.name === "New") iconName = "add-circle";
           else if (route.name === "Profile") iconName = "person";
 
           return (
