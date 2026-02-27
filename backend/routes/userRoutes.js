@@ -31,7 +31,7 @@ const userRoutes = express.Router()
  *       401:
  *         description: Unauthorized
  */
-userRoutes.get("/users", auth, getUsers);
+userRoutes.get("/", auth, getUsers);
 
 // userRoutes.get("/update_role", updateRole)
 
