@@ -72,6 +72,8 @@ router.get("/", getVideos);
  *   get:
  *     summary: Get a video by ID
  *     tags: [Videos]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -90,6 +92,7 @@ router.get("/", getVideos);
  *       404:
  *         description: Video not found
  */
+// router.get("/:id", auth, getVideoById);
 router.get("/:id", getVideoById);
 
 // -------------------------------------
