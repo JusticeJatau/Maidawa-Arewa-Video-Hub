@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useTheme } from "@react-navigation/native";
+import { useTheme } from "../context/ThemeContext";
 
 export default function CommentScreen({ route, navigation }) {
     const { theme } = useTheme();
