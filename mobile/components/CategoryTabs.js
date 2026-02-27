@@ -17,7 +17,7 @@ const CategoryTabs = ({ categories, onCategoryChange }) => {
     wrapper: {
       backgroundColor: theme.background,
       borderBottomWidth: 1,
-      borderBottomColor: theme.border,
+      borderBottomColor: theme.borderLight,
     },
     container: {
       paddingHorizontal: 16,
@@ -28,8 +28,8 @@ const CategoryTabs = ({ categories, onCategoryChange }) => {
       paddingHorizontal: 20,
       paddingVertical: 8,
       borderRadius: 25,
-      backgroundColor: theme.surface,
-      borderWidth: 1,
+      backgroundColor: theme.surface2,
+      // borderWidth: 1,
       borderColor: theme.border,
     },
     categoryTabActive: {
@@ -72,6 +72,9 @@ const CategoryTabs = ({ categories, onCategoryChange }) => {
             </Text>
           </TouchableOpacity>
         ))}
+        <View>
+          
+        </View>
       </ScrollView>
     </View>
   );
