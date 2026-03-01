@@ -7,8 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  */
 export const getToken = async () => {
   try {
-    const token = await AsyncStorage.getItem("jwt_token"); // key you use to store the JWT
-    console.log("Token retrieved from storage:", token);
+    const token = await AsyncStorage.getItem("jwt_token"); 
     return token;
   } catch (error) {
     console.error("Error getting token from storage:", error);
@@ -18,7 +17,7 @@ export const getToken = async () => {
 
 /**
  * Save JWT token to AsyncStorage
- * @param {string} token
+ * @param {string} token - the JWT token to save
  */
 export const setToken = async (token) => {
   try {
@@ -39,6 +38,41 @@ export const removeToken = async () => {
   }
 };
 
+/**
+ * Save user information to AsyncStorage
+ * @param {object} user - User data object
+ * @returns {Promise<void>}
+ */
+export const setUser = async (user) => {
+  try {
+    await AsyncStorage.setItem("user_info", JSON.stringify(user));
+  } catch (error) {
+    console.error("Error saving user info to storage:", error);
+  }
+};
+
+/**
+ * Get user information from AsyncStorage
+ * @returns {Promise<object|null>} the user object or null if not set
+ */
+export const getUser = async () => {
+  try {
+    const userJson = await AsyncStorage.getItem("user_info");
+    console.log("User info retrieved from storage:", userJson);
+    return userJson ? JSON.parse(userJson) : null;
+  } catch (error) {
+    console.error("Error getting user info from storage:", error);
+    return null;
+  }
+};
+
+/**
+ * Utility function to see all keys and values in AsyncStorage (for debugging)
+ * Logs all key-value pairs to the console
+ * @returns {Promise<void>}
+ * Note: Use this function only for debugging purposes, as it may expose sensitive information in the console
+ * Make sure to remove or comment out calls to this function in production code
+ */
 export const seeStorage = async () => {
   try {
     const keys = await AsyncStorage.getAllKeys();
