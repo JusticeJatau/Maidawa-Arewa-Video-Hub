@@ -70,7 +70,7 @@ const SplashScreenMinimal = ({ navigation }) => {
 
     // Navigate after 2.5 seconds
     const timeout = setTimeout(() => {
-      navigation.replace('Home');
+      navigation.replace('MainTabs');
     }, 2500);
 
     return () => clearTimeout(timeout);
