@@ -57,12 +57,12 @@ const login = async (req, res) => {
       })
 
       res.status(200).json({
-        user:{ _id: user._id,
-              name: user.name,
-              email: user.email, 
-              role: user.role,
-              createdAt: user.createdAt,
-              lastLogin: user.lastLogin
+        user:{
+          name: user.name,
+          email: user.email, 
+          role: user.role,
+          createdAt: user.createdAt,
+          lastLogin: user.lastLogin
         },
         token: generateToken(user._id, user.role)
       });
