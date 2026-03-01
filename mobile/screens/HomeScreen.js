@@ -4,19 +4,16 @@ import {
   FlatList,
   ActivityIndicator,
   StyleSheet,
-  TouchableOpacity,
   StatusBar,
 } from 'react-native';
 import Header from '../components/Header';
 import CategoryTabs from '../components/CategoryTabs';
 import VideoCard from '../components/VideoCard';
-import colors from '../constants/colors';
-import {api, PAGE_LIMIT, SERVER_BASE, API_BASE} from '../services/api';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { HomeScreenSkeleton, VideoCardSkeleton } from '../components/Skeleton';
+import { api } from '../services/api';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { normalizeVideo } from '../services/api';
-
 import { useTheme } from '../context/ThemeContext';
-
 
 const HomeScreen = ({ navigation }) => {
   const { theme } = useTheme();
@@ -29,6 +26,8 @@ const HomeScreen = ({ navigation }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   // Use ref to track the current category for race conditions
@@ -39,7 +38,6 @@ const HomeScreen = ({ navigation }) => {
   }, [selectedCategory]);
 
   useEffect(() => {
-    setCategories([{_id: 'All',name: 'All',}])
     fetchCategories();
   }, []);
 
@@ -47,7 +45,7 @@ const HomeScreen = ({ navigation }) => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(prev => [...prev, ...response.data]);
+      setCategories(prev => [{_id: 'All', name: 'All'}, ...response.data]);
     } catch (err) {
       console.log('Error fetching categories:', err.message);
     }
@@ -55,12 +53,22 @@ const HomeScreen = ({ navigation }) => {
 
   // Fetch videos from backend
   const fetchVideos = async (pageNumber = 1, category = selectedCategory) => {
-    if (loading || !hasMore) return;
+    // Don't check loading for first page, but check for subsequent pages
+    if (pageNumber > 1 && (!hasMore || loading)) return;
 
     try {
       setLoading(true);
+      
+      // Set appropriate loading state based on page number
+      if (pageNumber === 1) {
+        if (initialLoading) {
+          // First load - handled by initialLoading
+        } else {
+          // Category change - show card skeletons
+          setCategoryLoading(true);
+        }
+      }
 
-      // API call: adjust endpoint according to your backend
       const response = await api.get(
         `/videos?page=${pageNumber}&limit=${api.PAGE_LIMIT}&category=${category !== 'All' ? category : ''}`
       );
@@ -79,57 +87,102 @@ const HomeScreen = ({ navigation }) => {
       console.log('Error fetching videos:', err.message);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
+      setCategoryLoading(false);
     }
   };
 
   // Load next page for infinite scroll
   const loadMore = () => {
-    if (hasMore && !loading) {
+    if (hasMore && !loading && !categoryLoading) {
       fetchVideos(page + 1, selectedCategory);
     }
   };
 
   // Handle category change
   const handleCategoryChange = (category) => {
+    if (category === selectedCategory) return;
+    
     currentCategoryRef.current = category;
     setSelectedCategory(category);
     setPage(1);
     setHasMore(true);
     setVideos([]);
+    // Don't set initialLoading, just let categoryLoading handle it
   };
 
   // Navigate to VideoPlayerScreen with only videoId
   const handleVideoPress = (video) => {
     navigation.navigate('VideoPlayer', { videoId: video._id });
   };
+
   const handleLogin = () => {
     navigation.navigate('Login');
   };
 
+  // Show full page skeleton only on initial load
+  if (initialLoading) {
+    return <HomeScreenSkeleton />;
+  }
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      marginBottom: -20,
       backgroundColor: theme.background,
     },
     listContent: {
       paddingHorizontal: 12,
       paddingBottom: 0,
     },
+    skeletonContainer: {
+      paddingHorizontal: 12,
+      paddingTop: 20,
+      flex: 1,
+    },
+    footerLoader: {
+      paddingVertical: 20,
+      alignItems: 'center',
+    },
   });
+
+  // If category loading and no videos yet, show card skeletons
+  if (categoryLoading && videos.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar 
+          barStyle="light-content"
+          backgroundColor={theme.background}
+          translucent={false}
+        />
+        <Header onLoginPress={handleLogin} />
+        
+        <CategoryTabs
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+        />
+
+        <View style={styles.skeletonContainer}>
+          {[1, 2, 3, 4, 5].map((item) => (
+            <VideoCardSkeleton key={item} />
+          ))}
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar 
         barStyle="light-content"
-        backgroundColor="#f00"
+        backgroundColor={theme.background}
         translucent={false}
       />
-      <Header 
-        onLoginPress={handleLogin}
-      />
+      <Header onLoginPress={handleLogin} />
+      
       <CategoryTabs
         categories={categories}
+        selectedCategory={selectedCategory}
         onCategoryChange={handleCategoryChange}
       />
 
@@ -142,12 +195,16 @@ const HomeScreen = ({ navigation }) => {
             onPress={handleVideoPress}
           />
         )}
-        style={{ marginTop: 20 }}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator size="large" /> : null}
+        ListFooterComponent={loading ? 
+          <View style={styles.footerLoader}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View> 
+          : null
+        }
       />
     </SafeAreaView>
   );
