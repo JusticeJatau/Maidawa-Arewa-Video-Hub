@@ -1,18 +1,23 @@
 import { createContext, useEffect, useState } from "react";
-import { getToken, removeToken } from "../services/auth";
+import { getToken, getUser, removeToken } from "../services/auth";
+import { Alert } from "react-native";
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
+  const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const checkToken = async () => {
             const token = await getToken();
-            if(token){
+            const user_info = await getUser();
+            console.log("User info on app start:", user_info);
+            if(token && user_info){
                 setUserToken(token);
+                setUser(user_info);
                 setIsLoggedIn(true);
             }
 
@@ -27,15 +32,17 @@ export const AuthProvider = ({ children }) => {
         setIsLoggedIn(false)
     }
 
-    const login = async(token)=>{
+    const login = async(token, user_info) => {
         setUserToken(token);
-        setIsLoggedIn(true)
+        setUser(user_info);
+        setIsLoggedIn(true);
     }
 
     return (
         <AuthContext.Provider 
             value={{ 
-                userToken, 
+                userToken,
+                user, 
                 loading, 
                 login, 
                 logout,

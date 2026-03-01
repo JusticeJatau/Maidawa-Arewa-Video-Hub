@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
-import colors from "../constants/colors";
 import api from "../services/api";
+import { CommentsScreenSkeleton } from "../components/Skeleton";
 
 import {
     View,
@@ -302,6 +302,10 @@ export default function CommentScreen({ route, navigation }) {
             opacity: 0.5,
         },
     });
+
+    if(loading){
+        return <CommentsScreenSkeleton/>
+    }
 
     return (
         <SafeAreaView style={styles.container}>

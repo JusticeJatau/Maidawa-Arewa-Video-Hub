@@ -17,6 +17,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
+import { ProfileScreenSkeleton } from '../components/Skeleton';
 
 const { width } = Dimensions.get('window');
 
@@ -24,7 +25,8 @@ const ProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   
-  const { user, logout, isLoggedIn } = useContext(AuthContext);
+  const { user, logout, isLoggedIn, loading } = useContext(AuthContext);
+  console.log("User", user)
   
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -33,17 +35,17 @@ const ProfileScreen = ({ navigation }) => {
   // Profile data states
   const [profileImage, setProfileImage] = useState(user?.avatar || null);
   const [personalInfo, setPersonalInfo] = useState({
-    fullName: user?.fullName || 'John Doe',
-    username: user?.username || '@johndoe',
-    email: user?.email || 'john.doe@example.com',
-    bio: user?.bio || 'News enthusiast | Always staying informed',
+    fullName: user?.name || '',
+    username: user?.username || '',
+    email: user?.email || '',
+    bio: user?.bio || '',
   });
   
   const [contactInfo, setContactInfo] = useState({
-    phone: user?.phone || '+1 234 567 8900',
-    address: user?.address || '123 News Street, Media City',
-    country: user?.country || 'United States',
-    city: user?.city || 'New York',
+    phone: user?.phone || '',
+    address: user?.address || '',
+    country: user?.country || '',
+    city: user?.city || '',
   });
   
   const [preferences, setPreferences] = useState({
@@ -182,6 +184,14 @@ const ProfileScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
+  //Show prfile screen skeleton
+  if(loading){
+    return <ProfileScreenSkeleton/>
+  }
+  if(isLoggedIn && !user){
+    return <ProfileScreenSkeleton/>
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -226,7 +236,7 @@ const ProfileScreen = ({ navigation }) => {
             ) : (
               <View style={styles.profileImagePlaceholder}>
                 <Text style={styles.profileImagePlaceholderText}>
-                  {personalInfo.fullName.charAt(0)}
+                  {personalInfo.fullName.charAt(0) || "U"}
                 </Text>
               </View>
             )}
@@ -239,96 +249,105 @@ const ProfileScreen = ({ navigation }) => {
           
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{personalInfo.fullName}</Text>
-            <Text style={styles.profileUsername}>{personalInfo.username}</Text>
+            {/* {isLoggedIn && <Text style={styles.profileUsername}>@{personalInfo.username}</Text>} */}
+            {user?.username? <Text style={styles.profileUsername}>@{user?.username}</Text> : null}
             <View style={styles.memberBadge}>
               <MaterialIcons name="calendar-today" size={14} color={theme.textTertiary} />
-              <Text style={styles.memberSince}>Member since 2024</Text>
+              <Text style={styles.memberSince}>Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : 'Unknown'}</Text>
             </View>
           </View>
         </View>
 
         {/* Personal Information Section */}
-        <SectionCard>
-          <SectionHeader
-            title="Personal Information"
-            icon="person-outline"
-            onEdit={() => setIsEditing(true)}
-          />
-          <View style={styles.sectionContent}>
-            <InfoRow label="Full Name" value={personalInfo.fullName} icon="badge" field="personal.fullName" />
-            <InfoRow label="Username" value={personalInfo.username} icon="alternate-email" field="personal.username" />
-            <InfoRow label="Email" value={personalInfo.email} icon="email" field="personal.email" />
-            <InfoRow label="Bio" value={personalInfo.bio} icon="description" field="personal.bio" multiline />
-          </View>
-        </SectionCard>
+        {isLoggedIn? (
+          <View>
+            <SectionCard>
+              <SectionHeader
+                title="Personal Information"
+                icon="person-outline"
+                onEdit={() => setIsEditing(true)}
+              />
+              <View style={styles.sectionContent}>
+                <InfoRow label="Full Name" value={personalInfo.fullName} icon="badge" field="personal.fullName" />
+                <InfoRow label="Username" value={personalInfo.username} icon="alternate-email" field="personal.username" />
+                <InfoRow label="Email" value={personalInfo.email} icon="email" field="personal.email" />
+                <InfoRow label="Bio" value={personalInfo.bio} icon="description" field="personal.bio" multiline />
+              </View>
+            </SectionCard>
+            
+            <SectionCard>
+              {/*Contact Information Section */}
+              <SectionHeader
+                title="Contact Information"
+                icon="phone"
+                onEdit={() => setIsEditing(true)}
+              />
+              <View style={styles.sectionContent}>
+                <InfoRow label="Phone" value={contactInfo.phone} icon="phone" field="contact.phone" />
+                <InfoRow label="Address" value={contactInfo.address} icon="location-on" field="contact.address" />
+                <InfoRow label="City" value={contactInfo.city} icon="location-city" field="contact.city" />
+                <InfoRow label="Country" value={contactInfo.country} icon="public" field="contact.country" />
+              </View>
+            </SectionCard>
 
-        {/* Contact Information Section */}
-        <SectionCard>
-          <SectionHeader
-            title="Contact Information"
-            icon="phone"
-            onEdit={() => setIsEditing(true)}
-          />
-          <View style={styles.sectionContent}>
-            <InfoRow label="Phone" value={contactInfo.phone} icon="phone" field="contact.phone" />
-            <InfoRow label="Address" value={contactInfo.address} icon="location-on" field="contact.address" />
-            <InfoRow label="City" value={contactInfo.city} icon="location-city" field="contact.city" />
-            <InfoRow label="Country" value={contactInfo.country} icon="public" field="contact.country" />
-          </View>
-        </SectionCard>
+            <SectionCard>
+            {/* Preferences Section */}
+              <SectionHeader title="Preferences" icon="settings" />
+              <View style={styles.sectionContent}>
+                <PreferenceItem
+                  icon="notifications"
+                  label="Email Notifications"
+                  value={preferences.emailNotifications}
+                  onValueChange={(value) => setPreferences(prev => ({ ...prev, emailNotifications: value }))}
+                />
+                <PreferenceItem
+                  icon="notifications-active"
+                  label="Push Notifications"
+                  value={preferences.pushNotifications}
+                  onValueChange={(value) => setPreferences(prev => ({ ...prev, pushNotifications: value }))}
+                />
+                <PreferenceItem
+                  icon="history"
+                  label="Save Watch History"
+                  value={preferences.saveHistory}
+                  onValueChange={(value) => setPreferences(prev => ({ ...prev, saveHistory: value }))}
+                />
+              </View>
+            </SectionCard>
 
-        {/* Preferences Section */}
-        <SectionCard>
-          <SectionHeader title="Preferences" icon="settings" />
-          <View style={styles.sectionContent}>
-            <PreferenceItem
-              icon="notifications"
-              label="Email Notifications"
-              value={preferences.emailNotifications}
-              onValueChange={(value) => setPreferences(prev => ({ ...prev, emailNotifications: value }))}
-            />
-            <PreferenceItem
-              icon="notifications-active"
-              label="Push Notifications"
-              value={preferences.pushNotifications}
-              onValueChange={(value) => setPreferences(prev => ({ ...prev, pushNotifications: value }))}
-            />
-            <PreferenceItem
-              icon="history"
-              label="Save Watch History"
-              value={preferences.saveHistory}
-              onValueChange={(value) => setPreferences(prev => ({ ...prev, saveHistory: value }))}
-            />
+            <SectionCard>
+            {/* Account Actions Section */}
+              <SectionHeader title="Account" icon="security" />
+              <View style={styles.sectionContent}>
+                <ActionItem
+                  icon="lock"
+                  label="Change Password"
+                  onPress={() => Alert.alert('Coming Soon', 'Password change coming soon!')}
+                />
+                <ActionItem
+                  icon="privacy-tip"
+                  label="Privacy Settings"
+                  onPress={() => Alert.alert('Coming Soon', 'Privacy settings coming soon!')}
+                />
+                <ActionItem
+                  icon="help"
+                  label="Help & Support"
+                  onPress={() => Alert.alert('Coming Soon', 'Help center coming soon!')}
+                />
+                <ActionItem
+                  icon="logout"
+                  label="Logout"
+                  danger
+                  onPress={() => setShowLogoutModal(true)}
+                />
+              </View>
+            </SectionCard>
           </View>
-        </SectionCard>
-
-        {/* Account Actions Section */}
-        <SectionCard>
-          <SectionHeader title="Account" icon="security" />
-          <View style={styles.sectionContent}>
-            <ActionItem
-              icon="lock"
-              label="Change Password"
-              onPress={() => Alert.alert('Coming Soon', 'Password change coming soon!')}
-            />
-            <ActionItem
-              icon="privacy-tip"
-              label="Privacy Settings"
-              onPress={() => Alert.alert('Coming Soon', 'Privacy settings coming soon!')}
-            />
-            <ActionItem
-              icon="help"
-              label="Help & Support"
-              onPress={() => Alert.alert('Coming Soon', 'Help center coming soon!')}
-            />
-            <ActionItem
-              icon="logout"
-              label="Logout"
-              danger
-              onPress={() => setShowLogoutModal(true)}
-            />
+        ):(
+          <View>
+            <Text style={styles.placeholderText}>Log in to View your Info</Text>
           </View>
-        </SectionCard>
+        )}
 
         {/* App Info */}
         <View style={styles.appInfo}>
@@ -726,6 +745,14 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.text,
     fontSize: 15,
     fontWeight: '600',
+  },
+  placeholderText: {
+    color: theme.textSecondary,
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'Times New Roman',
+    fontWeight: '800',
+    fontStyle: 'italic',
   },
 });
 

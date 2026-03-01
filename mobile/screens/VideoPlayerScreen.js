@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { MaterialIcons } from '@expo/vector-icons';
 import RelatedNews from '../components/RelatedNews';
+import { VideoPlayerSkeleton } from '../components/Skeleton';
 import colors from '../constants/colors';
 import {api} from '../services/api';
 import { normalizeVideo, normalizeVideos } from '../services/api';
@@ -309,13 +310,8 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
   if (loading || !video) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading video...</Text>
-        </View>
-      </SafeAreaView>
-    );
+      <VideoPlayerSkeleton/>
+    )
   }
 
 
