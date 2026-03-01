@@ -15,7 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { api } from "../services/api";
-import { setToken } from "../services/auth";
+import { setToken, setUser } from "../services/auth";
 import { AuthContext } from "../context/AuthContext";
 
 const LoginScreen = ({ navigation }) => {
@@ -44,12 +44,13 @@ const LoginScreen = ({ navigation }) => {
       setLoading(true);
       const response = await api.post("/auth/login", form);
       
-      const { token } = response.data;
+      const { token, user } = response.data;
       await setToken(token);
-      await login(token);
+      await setUser(user);
+      await login(token, user);
 
       Alert.alert("Success", "Logged in successfully!");
-      navigation.replace("Home");
+      navigation.replace("MainTabs");
     } catch (error) {
       console.log(error.response?.data || error.message);
       Alert.alert("Error", error.response?.data?.message || "Login failed");
