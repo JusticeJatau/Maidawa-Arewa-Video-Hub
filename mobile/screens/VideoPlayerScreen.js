@@ -24,6 +24,8 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
   const [like, setLike] = useState([]);
   const [dislike, setDislike] = useState([]);
+  const [comment, setComment] = useState([]);
+  const [share, setShare] = useState([]);
 
   const handleReaction = async(type) => {
     if(!isLoggedIn){
@@ -33,18 +35,47 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
     try{
       await api.post(`/react/${videoId}`, { type: type });
+
+      if(type === "like"){
+        //If already liked -> do nothing
+        if (like.userReaction) return;
+
+        // If previously disliked → remove dislike first
+        if (dislike.userReaction) {
+          setDislike(prev => ({
+            count: prev.count - 1,
+            userReaction: false
+          }));
+        }
+
+        // Add like
+        setLike(prev => ({
+          count: prev.count + 1,
+          userReaction: true
+        }));
+      }
+
+
+      if(type === "dislike"){
+        // If already disliked -> do nothing
+        if (dislike.userReaction) return;
+
+        // If previously liked → remove like first
+        if (like.userReaction) {
+          setLike(prev => ({
+            count: prev.count - 1,
+            userReaction: false
+          }));
+        }
+
+        // Add dislike
+        setDislike(prev => ({
+          count: prev.count + 1,
+          userReaction: true
+        }));
+      }
     }catch(err){
       console.log("Error liking video:", err.message);
-    }
-    // alert(type)
-    const data = {name: "Hello"}
-    if(type === "like"){
-      setLike((prev)=>({...prev, userReaction: !prev.userReaction}));
-      setDislike((prev)=>({...prev, userReaction: false}))
-    }
-    if(type === "dislike"){
-      setDislike((prev)=>({...prev, userReaction: !prev.userReaction}));
-      setLike((prev)=>({...prev, userReaction: false}))
     }
     
   }
@@ -119,6 +150,12 @@ const VideoPlayerScreen = ({ navigation, route }) => {
     container: { 
       flex: 1, 
       backgroundColor: theme.background 
+    },
+    flex: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 5
     },
     loadingContainer: {
       flex: 1, 
@@ -368,51 +405,67 @@ const VideoPlayerScreen = ({ navigation, route }) => {
               <Text style={styles.videoDate}>{formatDate(video.createdAt)}</Text>
             </View>
 
-            <View style={styles.actionButtons}>
-              <TouchableOpacity 
-                onPress={()=>handleReaction("like")} 
-                style={[styles.actionButton, like.userReaction && styles.actionButtonActive]}
-              >
-                <MaterialIcons 
-                  name="thumb-up" 
-                  size={20} 
-                  color={like.userReaction ? theme.primary : theme.textSecondary} 
-                />
-                <Text style={[styles.actionText, like.userReaction && styles.actionTextActive]}>
-                  {like.userReaction === "like" ? 'Liked' : 'Like'} 
-                </Text>
-              </TouchableOpacity>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.actionButtons}
+            >
+              <View style={styles.flex}>
+                <TouchableOpacity 
+                  onPress={()=>handleReaction("like")} 
+                  style={[styles.actionButton, like.userReaction && styles.actionButtonActive]}
+                >
+                  <MaterialIcons 
+                    name="thumb-up" 
+                    size={20} 
+                    color={like.userReaction ? theme.primary : theme.textSecondary} 
+                  />
+                  <Text style={[styles.actionText, like.userReaction && styles.actionTextActive]}>
+                    {like.userReaction === "like" ? 'Liked' : 'Like'} 
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.actionText}>{like.count}</Text>
+              </View>
 
-              <TouchableOpacity 
-                onPress={()=>handleReaction("dislike")} 
-                style={[styles.actionButton, dislike.userReaction && styles.actionButtonActive]}
-              >
-                <MaterialIcons 
-                  name="thumb-down" 
-                  size={20} 
-                  color={dislike.userReaction ? theme.primary : theme.textSecondary} 
-                />
-                <Text style={[styles.actionText, dislike.userReaction && styles.actionTextActive]}>
-                  {dislike.userReaction ? 'Disliked' : 'Dislike'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.flex}>
+                <TouchableOpacity 
+                  onPress={()=>handleReaction("dislike")} 
+                  style={[styles.actionButton, dislike.userReaction && styles.actionButtonActive]}
+                >
+                  <MaterialIcons 
+                    name="thumb-down" 
+                    size={20} 
+                    color={dislike.userReaction ? theme.primary : theme.textSecondary} 
+                  />
+                  <Text style={[styles.actionText, dislike.userReaction && styles.actionTextActive]}>
+                    {dislike.userReaction ? 'Disliked' : 'Dislike'}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={styles.actionText}>{dislike.count}</Text>
+              </View>
 
-              <TouchableOpacity 
-                onPress={() => navigation.navigate('Comments', { videoId })} 
-                style={styles.actionButton}
-              >
-                <MaterialIcons name="comment" size={20} color={theme.textSecondary} />
-                <Text style={styles.actionText}>Comments</Text>
-              </TouchableOpacity>
+              <View style={styles.flex}>
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('Comments', { videoId })} 
+                  style={styles.actionButton}
+                >
+                  <MaterialIcons name="comment" size={20} color={theme.textSecondary} />
+                  <Text style={styles.actionText}>Comments</Text>
+                </TouchableOpacity>
+                <Text style={styles.actionText}>{comment?.count || 0}</Text>
+              </View>
 
-              <TouchableOpacity 
-                onPress={() => Alert.alert("Share", "Share functionality coming soon!")} 
-                style={styles.actionButton}
-              >
-                <MaterialIcons name="share" size={20} color={theme.textSecondary} />
-                <Text style={styles.actionText}>Share</Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.flex}>
+                <TouchableOpacity 
+                  onPress={() => Alert.alert("Share", "Share functionality coming soon!")} 
+                  style={styles.actionButton}
+                >
+                  <MaterialIcons name="share" size={20} color={theme.textSecondary} />
+                  <Text style={styles.actionText}>Share</Text>
+                </TouchableOpacity>
+                <Text style={styles.actionText}>{share?.count || 0}</Text>
+              </View>
+            </ScrollView>
           </View>
 
           <View style={styles.divider} />
