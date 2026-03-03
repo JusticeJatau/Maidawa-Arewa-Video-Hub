@@ -1,6 +1,7 @@
 import express from "express"
 import { createVideo, updateVideo, getVideos, getVideoById, deleteVideo } from "../controllers/videoController.js"
 import { auth } from "../middleware/authMiddleware.js";
+import { optionalAuth } from "../middleware/optionalAuth.js";
 import { uploadVideo } from "../middleware/uploadVideo.js";
 
 const router = express.Router();
@@ -93,7 +94,7 @@ router.get("/", getVideos);
  *         description: Video not found
  */
 // router.get("/:id", auth, getVideoById);
-router.get("/:id", getVideoById);
+router.get("/:id", optionalAuth, getVideoById);
 
 // -------------------------------------
 // Protected routes
