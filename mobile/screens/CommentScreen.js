@@ -66,7 +66,7 @@ export default function CommentScreen({ route, navigation }) {
                 text: trimmed,
                 userId: "anonymous", // replace with actual user id if available
             };
-            const res = await api.post(`comments/${videoId}`, payload);
+            const res = await api.post(`/comments/${videoId}`, payload);
             const created = res?.data ?? res ?? null;
             
             if (created) {
