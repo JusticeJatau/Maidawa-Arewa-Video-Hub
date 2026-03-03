@@ -29,7 +29,7 @@ const router = express.Router()
  *             required:
  *               - reaction
  *             properties:
- *               reaction:
+ *               type:
  *                 type: string
  *                 description: Type of reaction
  *                 enum: [like, dislike]
