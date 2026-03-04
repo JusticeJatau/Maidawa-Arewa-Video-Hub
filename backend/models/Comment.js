@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 
 const commentSchema = new mongoose.Schema({
-    userID: {
+    userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    videoID: {
+    videoId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Video",
         required: true

@@ -1,22 +1,27 @@
 import Comment from "../models/Comment.js";
+import mongoose from 'mongoose'
 
 const addComment = async(req, res)=>{
-    const { videoID, content } = req.body
+    const videoId = req.params.id;
+    const { content } = req.body;
 
     const comment = await Comment.create({
-        videoID,
-        userID: req.user.id,
+        videoId,
+        userId: req.user.id,
         content
     })
+    await comment.populate("userId", "name");
 
     res.status(201).json(comment)
 }
 
 const getVideoComments = async(req, res)=>{
+    const videoId = req.params.id;
+
     const comments = await Comment.find({
-        videoID,
+        videoId: new mongoose.Types.ObjectId(videoId),
         status: "visible"
-    }).populate("userID", "username")
+    }).populate("userId", "name")
     .sort({createdAt: -1})
 
     res.json(comments)

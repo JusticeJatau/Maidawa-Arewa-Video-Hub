@@ -1,5 +1,6 @@
 import { addComment, getVideoComments } from "../controllers/commentController.js";
 import { auth } from "../middleware/authMiddleware.js";
+import { optionalAuth } from "../middleware/optionalAuth.js";
 import express from "express"
 
 const router = express.Router()
@@ -46,12 +47,20 @@ const router = express.Router()
 
 /**
  * @swagger
- * /api/comments:
+ * /api/comments/{id}:
  *   post:
  *     summary: Add a comment to a video
  *     tags: [Comments]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Video Id
+ *         schema:
+ *           type: string
+ *           example: 6984613caae810391dff7bf1
  *     requestBody:
  *       required: true
  *       content:
@@ -59,13 +68,8 @@ const router = express.Router()
  *           schema:
  *             type: object
  *             required:
- *               - videoId
  *               - content
  *             properties:
- *               videoId:
- *                 type: string
- *                 description: ID of the video
- *                 example: 6984613caae810391dff7bf1
  *               content:
  *                 type: string
  *                 description: Comment text
@@ -82,7 +86,7 @@ const router = express.Router()
  *       404:
  *         description: Video not found
  */
-router.post("/", auth, addComment);
+router.post("/:id", auth, addComment);
 
 // -------------------------------------
 // Public route: get comments for a video
@@ -114,7 +118,7 @@ router.post("/", auth, addComment);
  *       404:
  *         description: Video not found
  */
-router.get("/:videoId", getVideoComments);
+router.get("/:id", optionalAuth, getVideoComments);
 
 
 export default router

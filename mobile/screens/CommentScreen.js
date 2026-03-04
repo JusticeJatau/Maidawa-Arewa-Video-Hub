@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
-import api from "../services/api";
+import { api } from "../services/api";
 import { CommentsScreenSkeleton } from "../components/Skeleton";
+import { AuthContext } from "../context/AuthContext";
 
 import {
     View,
@@ -20,6 +21,7 @@ import { useTheme } from "../context/ThemeContext";
 
 export default function CommentScreen({ route, navigation }) {
     const { theme } = useTheme();
+    const { isLoggedIn } = useContext(AuthContext);
 
     const { videoId } = route.params || {};
     const [comments, setComments] = useState([]);
@@ -30,18 +32,10 @@ export default function CommentScreen({ route, navigation }) {
     const fetchComments = async (id) => {
         if (!id) return;
         setLoading(true);
+
         try {
-            const res = await api.get(`comments/${id}`);
-            const data = res?.data ?? res ?? [];
-            
-            // Normalize and sort by date (newest first)
-            const normalized = data.map((c) => ({
-                ...c,
-                createdAt: c.createdAt ? new Date(c.createdAt) : new Date(),
-            }));
-            
-            normalized.sort((a, b) => b.createdAt - a.createdAt);
-            setComments(normalized);
+            const { data } = await api.get(`/comments/${id}`);
+            setComments(data ?? []);
         } catch (err) {
             console.warn("Failed to fetch comments", err);
         } finally {
@@ -50,34 +44,25 @@ export default function CommentScreen({ route, navigation }) {
     };
 
     useEffect(() => {
-        if (!videoId) return;
-        fetchComments(videoId);
+        if (videoId) fetchComments(videoId);
     }, [videoId]);
 
     const sendComment = async () => {
-        const trimmed = (text || "").trim();
+        if(!isLoggedIn){
+            navigation.replace('Login');
+        return;
+        }
+        const trimmed = text.trim();
         if (!trimmed || !videoId) return;
-        
+
         setText("");
         setSending(true);
-        
+
         try {
-            const payload = {
-                text: trimmed,
-                userId: "anonymous", // replace with actual user id if available
-            };
-            const res = await api.post(`/comments/${videoId}`, payload);
-            const created = res?.data ?? res ?? null;
-            
-            if (created) {
-                // Add new comment at the top
-                const newComment = {
-                    ...created,
-                    createdAt: new Date(),
-                };
-                setComments((prev) => [newComment, ...prev]);
-            } else {
-                fetchComments(videoId);
+            const { data } = await api.post(`/comments/${videoId}`, { content: trimmed });
+
+            if (data) {
+                setComments((prev) => [data, ...prev]);
             }
         } catch (err) {
             console.warn("Failed to send comment", err);
@@ -86,30 +71,31 @@ export default function CommentScreen({ route, navigation }) {
         }
     };
 
-    const formatTimeAgo = (date) => {
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
         const now = new Date();
-        const diffSeconds = Math.floor((now - date) / 1000);
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffSeconds < 60) return 'just now';
-        if (diffSeconds < 3600) return `${Math.floor(diffSeconds / 60)}m ago`;
-        if (diffSeconds < 86400) return `${Math.floor(diffSeconds / 3600)}h ago`;
-        if (diffSeconds < 604800) return `${Math.floor(diffSeconds / 86400)}d ago`;
-        return date.toLocaleDateString();
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     const renderItem = ({ item }) => (
         <View style={styles.commentContainer}>
             <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                    {item.userId ? item.userId.charAt(0).toUpperCase() : "A"}
+                    {item.userId ? item.userId.name.charAt(0).toUpperCase() : "A"}
                 </Text>
             </View>
             <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
-                    <Text style={styles.userName}>{item.userId || "Anonymous"}</Text>
-                    <Text style={styles.timeAgo}>{formatTimeAgo(item.createdAt)}</Text>
+                    <Text style={styles.userName}>{item.userId.name || "Anonymous"}</Text>
+                    <Text style={styles.timeAgo}>{formatDate(item.createdAt)}</Text>
                 </View>
-                <Text style={styles.commentText}>{item.text}</Text>
+                <Text style={styles.commentText}>{item.content}</Text>
                 
                 <View style={styles.commentActions}>
                     <TouchableOpacity style={styles.actionButton}>
@@ -311,51 +297,57 @@ export default function CommentScreen({ route, navigation }) {
         <SafeAreaView style={styles.container}>
             {renderHeader()}
             
-            <FlatList
-                data={comments}
-                keyExtractor={(item) => item.id ?? item._id ?? Math.random().toString()}
-                renderItem={renderItem}
-                contentContainerStyle={styles.list}
-                ListEmptyComponent={!loading && renderEmpty}
-                ListHeaderComponent={loading ? (
-                    <View style={styles.loaderContainer}>
-                        <ActivityIndicator size="large" color={theme.primary} />
-                    </View>
-                ) : null}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-            />
+            
 
             <KeyboardAvoidingView 
+                style={{flex: 1}}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
-            >
-                <View style={styles.inputRow}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Write a comment..."
-                        placeholderTextColor={theme.textTertiary}
-                        value={text}
-                        onChangeText={setText}
-                        multiline
-                        maxLength={500}
+            > 
+                <View style={{flex: 1,}}>
+                    <FlatList
+                        data={comments}
+                        keyExtractor={(item) => item.id ?? item._id ?? Math.random().toString()}
+                        renderItem={renderItem}
+                        contentContainerStyle={styles.list}
+                        ListEmptyComponent={!loading && renderEmpty}
+                        ListHeaderComponent={loading ? (
+                            <View style={styles.loaderContainer}>
+                                <ActivityIndicator size="large" color={theme.primary} />
+                            </View>
+                        ) : null}
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
                     />
-                    <TouchableOpacity 
-                        style={[
-                            styles.sendButton, 
-                            (!text.trim() || sending) && styles.sendButtonDisabled
-                        ]} 
-                        onPress={sendComment} 
-                        disabled={!text.trim() || sending}
-                        activeOpacity={0.7}
-                    >
-                        {sending ? (
-                            <ActivityIndicator size="small" color={theme.text} />
-                        ) : (
-                            <MaterialIcons name="send" size={22} color={theme.text} />
-                        )}
-                    </TouchableOpacity>
                 </View>
+                <SafeAreaView edges={['bottom']} style={{ backgroundColor: theme.surface }}>
+                    <View style={styles.inputRow}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Write a comment..."
+                            placeholderTextColor={theme.textTertiary}
+                            value={text}
+                            onChangeText={(value) => setText(value)}
+                            multiline
+                            maxLength={500}
+                        />
+                        <TouchableOpacity 
+                            style={[
+                                styles.sendButton, 
+                                (!text.trim() || sending) && styles.sendButtonDisabled
+                            ]} 
+                            onPress={sendComment} 
+                            disabled={!text.trim() || sending}
+                            activeOpacity={0.7}
+                        >
+                            {sending ? (
+                                <ActivityIndicator size="small" color={theme.text} />
+                            ) : (
+                                <MaterialIcons name="send" size={22} color={theme.text} />
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </SafeAreaView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
