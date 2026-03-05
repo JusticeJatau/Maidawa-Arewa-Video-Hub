@@ -10,7 +10,7 @@ const Header = ({ onLoginPress, onSearch }) => {
   const { theme } = useTheme();
 
   const navigation = useNavigation();
-  const { isLoggedIn } = useContext(AuthContext);
+  const { isLoggedIn, user } = useContext(AuthContext);
   const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleSearch = (text) => {
@@ -21,6 +21,13 @@ const Header = ({ onLoginPress, onSearch }) => {
   const handleSettingsPress = () => {
     navigation.navigate('Settings');
   };
+
+  const getInitials = (name)=>{
+    return (name
+      .split(" ")
+      .map(word => word[0])
+      .join(""));
+  }
 
   const styles = StyleSheet.create({
     container: {
@@ -121,7 +128,7 @@ const Header = ({ onLoginPress, onSearch }) => {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.avatarButton}>
-              <Text style={styles.avatarText}>JD</Text>
+              <Text style={styles.avatarText}>{getInitials(user.name)}</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={handleSettingsPress} style={styles.iconButton}>
