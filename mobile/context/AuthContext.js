@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react";
-import { getToken, getUser, removeToken } from "../services/auth";
+import { getToken, getUser, removeToken, getBackendData } from "../services/auth";
 import { Alert } from "react-native";
+import { SERVER_BASE, api } from "../services/api";
 
 export const AuthContext = createContext();
 
@@ -8,22 +9,35 @@ export const AuthProvider = ({ children }) => {
   const [userToken, setUserToken] = useState(null);
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [backend, setBackend] = useState(null);
   const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const checkToken = async () => {
+        const init = async () => {
             const token = await getToken();
             const user_info = await getUser();
-            console.log("User info on app start:", user_info);
+
+            // console.log("Backend info:", backend_info);
+
             if(token && user_info){
                 setUserToken(token);
                 setUser(user_info);
                 setIsLoggedIn(true);
             }
 
+            try{
+                const configData = api.get(`${SERVER_BASE}/config.json`)
+                console.log("Config Data",configData)
+            }catch(err){
+                console.log("Failed to fecth backend config: ", err)
+
+                const backendConfig = await getBackendData();
+                setBackend(backendConfig)
+            }
+
             setLoading(false);
         };
-        checkToken();
+        init();
     }, []);
 
     const logout = async () => {
@@ -43,6 +57,7 @@ export const AuthProvider = ({ children }) => {
             value={{ 
                 userToken,
                 user, 
+                backend,
                 loading, 
                 login, 
                 logout,

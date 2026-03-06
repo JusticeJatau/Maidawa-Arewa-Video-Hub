@@ -1,10 +1,9 @@
 import axios from "axios";
 import { getToken } from "./auth";
 
-const API_BASE = process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_BASE = "https://ma-video-hub-backend.onrender.com/api";
 const PAGE_LIMIT = 10;
 const SERVER_BASE = API_BASE.replace(/\/api$/, ''); // remove trailing /api
-
 
 // create axios instance
 const api = axios.create({

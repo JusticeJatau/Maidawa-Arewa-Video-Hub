@@ -66,6 +66,24 @@ export const getUser = async () => {
   }
 };
 
+export const saveBackendData = async(data)=>{
+  try {
+    await AsyncStorage.setItem("backend_info", JSON.stringify(data));
+  } catch (error) {
+    console.error("Error saving backend info to storage:", error);
+  }
+}
+
+export const getBackendData = async () => {
+  try {
+    const data = await AsyncStorage.getItem("backend_info");
+    return data ? JSON.parse(data) : { BACKEND_URL: "https://ma-video-hub-backend.onrender.com/api" };
+  } catch (error) {
+    console.error("Error getting backend info from storage:", error);
+    return { BACKEND_URL: "https://ma-video-hub-backend.onrender.com/api" };
+  }
+};
+
 /**
  * Utility function to see all keys and values in AsyncStorage (for debugging)
  * Logs all key-value pairs to the console
