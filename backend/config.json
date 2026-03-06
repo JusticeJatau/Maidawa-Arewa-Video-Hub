@@ -1,0 +1,5 @@
+{
+  "BACKEND_URL": "https://ma-video-hub-backend.onrender.com/api",
+  "VIDEO_STORAGE_URL": "https://cdn.maidawaarewa.com",
+  "ANALYTICS_ENABLED": true
+}
