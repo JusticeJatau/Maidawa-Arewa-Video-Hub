@@ -20,9 +20,13 @@ app.use(express.json())
 app.use(cors())
 const router = express.Router()
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+app.get("/config.json", (req, res) => {
+  res.json({
+    BACKEND_URL: "https://ma-video-hub-backend.onrender.com",
+    VIDEO_BASE_URL: "https://ma-video-hub-backend.onrender.com/uploads",
+    APP_VERSION: "1.0.0"
+  });
+});
 
 //gives acces to video in the upload folder
 app.use("/uploads", express.static("uploads"));
