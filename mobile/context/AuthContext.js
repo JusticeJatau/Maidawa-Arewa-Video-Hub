@@ -26,8 +26,9 @@ export const AuthProvider = ({ children }) => {
             }
 
             try{
-                const configData = api.get(`${SERVER_BASE}/config.json`)
-                console.log("Config Data",configData)
+                const backendConfig = await api.get(`${SERVER_BASE}/config.json`)
+                setBackend(backendConfig.data)
+                console.log("Config Data",backendConfig.data)
             }catch(err){
                 console.log("Failed to fecth backend config: ", err)
 
