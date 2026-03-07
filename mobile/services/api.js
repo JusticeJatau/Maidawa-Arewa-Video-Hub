@@ -1,7 +1,8 @@
 import axios from "axios";
 import { getToken } from "./auth";
 
-const API_BASE = "https://ma-video-hub-backend.onrender.com/api";
+// const API_BASE = "https://ma-video-hub-backend.onrender.com/api";
+const API_BASE = "http://192.168.73.228:5000/api";
 const PAGE_LIMIT = 10;
 const SERVER_BASE = API_BASE.replace(/\/api$/, ''); // remove trailing /api
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import { api } from "../services/api";
 import { setToken } from "../services/auth";
 
 const SignUpScreen = ({ navigation }) => {
+  const otpRefs = useRef([]); // NEW: refs for OTP inputs
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -44,18 +45,23 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   const handleOtpChange = (index, value) => {
-    if (value.length > 1) return; // Prevent multiple digits
-    
+    if (value.length > 1) return; // only allow one digit per box
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
     setOtpError('');
 
-    // Auto-focus next input
-    if (value && index < 5) {
-      const nextInput = `otp-${index + 1}`;
-      const nextField = document?.getElementById?.(nextInput);
-      if (nextField) nextField.focus();
+    if (value) {
+      // Auto-focus next input
+      if (index < 5) {
+        otpRefs.current[index + 1]?.focus();
+      }
+    } else {
+      // If deleting, focus previous input
+      if (index > 0) {
+        otpRefs.current[index - 1]?.focus();
+      }
     }
   };
 
@@ -283,13 +289,19 @@ const SignUpScreen = ({ navigation }) => {
         {otp.map((digit, index) => (
           <TextInput
             key={index}
-            id={`otp-${index}`}
+            ref={el => otpRefs.current[index] = el} // assign ref
             style={[styles.otpInput, otpError && styles.otpInputError]}
             value={digit}
             onChangeText={(value) => handleOtpChange(index, value)}
             keyboardType="number-pad"
             maxLength={1}
             selectTextOnFocus
+            onKeyPress={({ nativeEvent }) => {
+              // handle backspace
+              if (nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+                otpRefs.current[index - 1]?.focus();
+              }
+            }}
           />
         ))}
       </View>

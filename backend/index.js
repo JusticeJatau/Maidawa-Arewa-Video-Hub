@@ -10,6 +10,7 @@ import reactionRoutes from './routes/reactionRoutes.js'
 import commentRoutes from './routes/commentRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import dashboardRoutes from './routes/dashboardRoutes.js'
+import otpRoutes from './routes/otpRoutes.js'
 import { swaggerDocs } from './config/swagger.js'
 
 dotenv.config()
@@ -39,6 +40,7 @@ app.use('/api/react', reactionRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/otp', otpRoutes);
 
 swaggerDocs(app);
 
