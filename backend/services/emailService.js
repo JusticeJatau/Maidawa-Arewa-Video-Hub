@@ -75,7 +75,7 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Verify Your Email - MA Video Hub</title>
+      <title>Your OTP Code - MA Video Hub</title>
       <style>
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -155,43 +155,6 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
           border-radius: 8px;
           font-size: 14px;
         }
-        .button {
-          display: inline-block;
-          background: linear-gradient(to right, #0A84FF, #5E5CE6);
-          color: white;
-          text-decoration: none;
-          padding: 14px 30px;
-          border-radius: 30px;
-          font-weight: 600;
-          font-size: 16px;
-          margin: 20px 0;
-          text-align: center;
-          border: none;
-          cursor: pointer;
-        }
-        .button:hover {
-          opacity: 0.9;
-        }
-        .features {
-          display: flex;
-          justify-content: space-around;
-          margin: 30px 0;
-          padding: 20px 0;
-          border-top: 1px solid #eee;
-          border-bottom: 1px solid #eee;
-        }
-        .feature {
-          text-align: center;
-          flex: 1;
-        }
-        .feature-icon {
-          font-size: 24px;
-          margin-bottom: 8px;
-        }
-        .feature-text {
-          font-size: 12px;
-          color: #666;
-        }
         .footer {
           text-align: center;
           padding: 25px;
@@ -203,9 +166,6 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
         .footer a {
           color: #0A84FF;
           text-decoration: none;
-        }
-        .footer a:hover {
-          text-decoration: underline;
         }
         .social-links {
           margin-top: 15px;
@@ -236,14 +196,14 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
           <div class="greeting">Hello ${name}!</div>
           
           <div class="message">
-            Thank you for choosing MA Video Hub. To complete your verification, 
-            please use the following One-Time Password (OTP):
+            You requested a One-Time Password (OTP) for secure access to your account.
+            Please use the following code:
           </div>
           
           <div class="otp-container">
-            <div class="otp-label">Verification Code</div>
+            <div class="otp-label">Your OTP Code</div>
             <div class="otp-code">${otp}</div>
-            <div style="color: #666; font-size: 14px;">Enter this code to verify your email</div>
+            <div style="color: #666; font-size: 14px;">Enter this code to proceed</div>
           </div>
           
           <div class="expiry-note">
@@ -251,16 +211,196 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
             Please use it before it expires.
           </div>
           
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL}/verify-email?email=${encodeURIComponent(to)}" class="button">
-              Verify Email
-            </a>
-          </div>
-          
           <div class="message" style="margin-top: 30px;">
             <p style="margin-bottom: 10px;"><strong>Didn't request this?</strong></p>
-            <p>If you didn't attempt to verify an email with MA Video Hub, please ignore this email 
-            or contact our support team if you have concerns.</p>
+            <p>If you didn't request an OTP, please ignore this email or contact our support team if you have concerns.</p>
+          </div>
+        </div>
+        
+        <div class="footer">
+          <p>&copy; ${year} MA Video Hub. All rights reserved.</p>
+          <p>Made with ❤️ by Maidawa Arewa</p>
+          <p style="margin-top: 15px; font-size: 11px;">
+            This is an automated email, please do not reply.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Generate verification email HTML
+ * @param {string} email - User's email
+ * @param {string} name - User's name
+ * @param {string} token - Verification token
+ * @param {number} expiryHours - Expiry time in hours
+ * @returns {string} - HTML content
+ */
+const generateVerificationEmailHtml = (email, name, token, expiryHours = 24) => {
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  const year = new Date().getFullYear();
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Verify Your Email - MA Video Hub</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          margin: 0;
+          padding: 0;
+          background-color: #f5f5f5;
+        }
+        .container {
+          max-width: 600px;
+          margin: 20px auto;
+          background-color: #ffffff;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+          background: linear-gradient(135deg, #0A84FF 0%, #5E5CE6 100%);
+          color: white;
+          padding: 30px 20px;
+          text-align: center;
+        }
+        .logo {
+          font-size: 32px;
+          font-weight: bold;
+          margin-bottom: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+        }
+        .logo-icon {
+          font-size: 40px;
+        }
+        .content {
+          padding: 40px 30px;
+        }
+        .greeting {
+          font-size: 24px;
+          font-weight: bold;
+          color: #0A84FF;
+          margin-bottom: 15px;
+        }
+        .message {
+          font-size: 16px;
+          color: #555;
+          margin-bottom: 25px;
+        }
+        .button-container {
+          text-align: center;
+          margin: 35px 0;
+        }
+        .button {
+          display: inline-block;
+          background: linear-gradient(to right, #0A84FF, #5E5CE6);
+          color: white;
+          text-decoration: none;
+          padding: 16px 40px;
+          border-radius: 50px;
+          font-weight: 600;
+          font-size: 18px;
+          box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
+        }
+        .button:hover {
+          opacity: 0.9;
+          transform: translateY(-2px);
+        }
+        .link-box {
+          background-color: #f5f7fa;
+          border-radius: 8px;
+          padding: 15px;
+          margin: 20px 0;
+          word-break: break-all;
+          font-family: monospace;
+          font-size: 14px;
+          color: #666;
+          border: 1px solid #e1e4e8;
+        }
+        .expiry-note {
+          background-color: #fff8e1;
+          border-left: 4px solid #FFD60A;
+          padding: 15px 20px;
+          margin: 25px 0;
+          border-radius: 8px;
+          font-size: 14px;
+        }
+        .features {
+          display: flex;
+          justify-content: space-around;
+          margin: 30px 0;
+          padding: 20px 0;
+          border-top: 1px solid #eee;
+          border-bottom: 1px solid #eee;
+        }
+        .feature {
+          text-align: center;
+          flex: 1;
+        }
+        .feature-icon {
+          font-size: 24px;
+          margin-bottom: 8px;
+        }
+        .feature-text {
+          font-size: 12px;
+          color: #666;
+        }
+        .footer {
+          text-align: center;
+          padding: 25px;
+          color: #777;
+          font-size: 13px;
+          border-top: 1px solid #eee;
+          background-color: #fafafa;
+        }
+        @media only screen and (max-width: 600px) {
+          .container { margin: 10px; }
+          .content { padding: 20px; }
+          .button { padding: 14px 30px; font-size: 16px; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="logo">
+            <span class="logo-icon">🎬</span>
+            <span>MA Video Hub</span>
+          </div>
+          <div>Your Premier News & Entertainment Destination</div>
+        </div>
+        
+        <div class="content">
+          <div class="greeting">Welcome to MA Video Hub, ${name}!</div>
+          
+          <div class="message">
+            You're just one step away from accessing breaking news, HD videos, and personalized content. 
+            Please verify your email address to activate your account.
+          </div>
+          
+          <div class="button-container">
+            <a href="${verificationUrl}" class="button">Verify Email Address</a>
+          </div>
+          
+          <div class="link-box">
+            <strong>Or copy this link:</strong><br>
+            ${verificationUrl}
+          </div>
+          
+          <div class="expiry-note">
+            <strong>⏰ Link Expiration:</strong> This verification link will expire in <strong>${expiryHours} hours</strong>.
+            If you don't verify within this time, you'll need to request a new verification email.
           </div>
           
           <div class="features">
@@ -277,18 +417,18 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
               <div class="feature-text">Instant Alerts</div>
             </div>
           </div>
+          
+          <div class="message" style="margin-top: 20px;">
+            <p style="margin-bottom: 10px;"><strong>Didn't create an account?</strong></p>
+            <p>If you didn't sign up for MA Video Hub, please ignore this email or contact our support team.</p>
+          </div>
         </div>
         
         <div class="footer">
           <p>&copy; ${year} MA Video Hub. All rights reserved.</p>
           <p>Made with ❤️ by Maidawa Arewa</p>
-          <div class="social-links">
-            <a href="#" class="social-link">Twitter</a> •
-            <a href="#" class="social-link">Facebook</a> •
-            <a href="#" class="social-link">Instagram</a>
-          </div>
           <p style="margin-top: 15px; font-size: 11px;">
-            This is an automated email, please do not reply to this address.
+            This is an automated email, please do not reply.
           </p>
         </div>
       </div>
@@ -298,7 +438,7 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
 };
 
 /**
- * Send OTP verification email
+ * Send OTP email
  * @param {string} email - Recipient email
  * @param {string} otp - One-time password
  * @param {string} name - User's name
@@ -308,11 +448,11 @@ const generateOtpEmailHtml = (otp, name, expiryMinutes = 10) => {
 export const sendOtpEmail = async (email, otp, name, expiryMinutes = 10) => {
   const html = generateOtpEmailHtml(otp, name, expiryMinutes);
   const text = `
-    MA Video Hub - Email Verification
+    MA Video Hub - Your OTP Code
     
     Hello ${name},
     
-    Your verification code is: ${otp}
+    Your One-Time Password (OTP) is: ${otp}
     
     This code will expire in ${expiryMinutes} minutes.
     
@@ -323,7 +463,41 @@ export const sendOtpEmail = async (email, otp, name, expiryMinutes = 10) => {
 
   return await sendEmail({
     to: email,
-    subject: "🔐 Verify Your Email - MA Video Hub",
+    subject: "🔐 Your OTP Code - MA Video Hub",
+    html,
+    text,
+  });
+};
+
+/**
+ * Send email verification link
+ * @param {string} email - Recipient email
+ * @param {string} token - Verification token
+ * @param {string} name - User's name
+ * @param {number} expiryHours - Expiry time in hours
+ * @returns {Promise<Object>} - Result object
+ */
+export const sendVerificationEmail = async (email, token, name, expiryHours = 24) => {
+  const html = generateVerificationEmailHtml(email, name, token, expiryHours);
+  const text = `
+    MA Video Hub - Verify Your Email
+    
+    Hello ${name},
+    
+    Please verify your email address by clicking the link below:
+    
+    ${process.env.FRONTEND_URL}/verify-email/${token}
+    
+    This link will expire in ${expiryHours} hours.
+    
+    If you didn't create an account, please ignore this email.
+    
+    © ${new Date().getFullYear()} MA Video Hub
+  `;
+
+  return await sendEmail({
+    to: email,
+    subject: "📧 Verify Your Email - MA Video Hub",
     html,
     text,
   });
@@ -343,7 +517,6 @@ export const sendWelcomeEmail = async (email, name) => {
     <html>
     <head>
       <style>
-        /* Similar styles as above, simplified for welcome */
         body { font-family: 'Segoe UI', sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
         .header { background: linear-gradient(135deg, #0A84FF, #5E5CE6); color: white; padding: 30px; text-align: center; }
@@ -446,6 +619,7 @@ export const sendPasswordResetEmail = async (email, token, name) => {
 export default {
   sendEmail,
   sendOtpEmail,
+  sendVerificationEmail,
   sendWelcomeEmail,
   sendPasswordResetEmail,
 };
