@@ -40,7 +40,7 @@ app.use('/api/react', reactionRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/dashboard', dashboardRoutes)
-app.use('/api/otp', otpRoutes);
+app.use('/api/auth', otpRoutes);
 
 swaggerDocs(app);
 
