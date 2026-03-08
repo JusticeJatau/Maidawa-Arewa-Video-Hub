@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useContext } from "react";
 import {
   View,
   Text,
@@ -15,11 +15,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { api } from "../services/api";
-import { setToken } from "../services/auth";
+import { setToken, setUser } from "../services/auth";
+import { AuthContext } from "../context/AuthContext";
 
 const SignUpScreen = ({ navigation }) => {
   const otpRefs = useRef([]); // NEW: refs for OTP inputs
   const { theme } = useTheme();
+  const { login } = useContext(AuthContext);
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -112,7 +114,7 @@ const SignUpScreen = ({ navigation }) => {
 
     try {
       setVerificationLoading(true);
-      const response = await api.post("/auth/send-otp", { email: form.email });
+      const response = await api.post("/auth/send-otp", { email: form.email, name:form.name });
       
       if (response.data.success) {
         setCurrentStep(2);
@@ -154,7 +156,7 @@ const SignUpScreen = ({ navigation }) => {
 
     try {
       setVerificationLoading(true);
-      const response = await api.post("/auth/resend-otp", { email: form.email });
+      const response = await api.post("/auth/resend-otp", { email: form.email, name: form.name });
       
       if (response.data.success) {
         setOtp(['', '', '', '', '', '']);
@@ -197,11 +199,13 @@ const SignUpScreen = ({ navigation }) => {
         password: form.password,
       });
       
-      const { token } = response.data;
+      const { token, user } = response.data;
       await setToken(token);
+      await setUser(user)
+      await login(token, user)
 
       Alert.alert("Success", "Account created successfully!");
-      navigation.replace("Home");
+      navigation.replace("MainTabs");
     } catch (error) {
       console.log(error.response?.data || error.message);
       Alert.alert("Error", error.response?.data?.message || "Sign up failed");
