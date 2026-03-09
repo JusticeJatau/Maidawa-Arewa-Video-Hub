@@ -18,6 +18,14 @@ const otpSchema = new mongoose.Schema({
     type: Number,
     default: 0, // number of verification attempts
   },
+  sendCount: {
+    type: Number,
+    default: 0, // number of OTPs sent in current window
+  },
+  lastSentAt: {
+    type: Date,
+    default: null,
+  }
 }, { timestamps: true });
 
 const OTP = mongoose.model('OTP', otpSchema);
