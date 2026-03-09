@@ -87,12 +87,12 @@ export default function CommentScreen({ route, navigation }) {
         <View style={styles.commentContainer}>
             <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                    {item.userId ? item.userId.name.charAt(0).toUpperCase() : "A"}
+                    {item.userId ? item?.userId.name.charAt(0).toUpperCase() : "A"}
                 </Text>
             </View>
             <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
-                    <Text style={styles.userName}>{item.userId.name || "Anonymous"}</Text>
+                    <Text style={styles.userName}>{item?.userId?.name || "Anonymous"}</Text>
                     <Text style={styles.timeAgo}>{formatDate(item.createdAt)}</Text>
                 </View>
                 <Text style={styles.commentText}>{item.content}</Text>
