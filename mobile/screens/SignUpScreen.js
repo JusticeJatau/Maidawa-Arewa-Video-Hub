@@ -137,7 +137,8 @@ const SignUpScreen = ({ navigation }) => {
       const otpString = otp.join('');
       const response = await api.post("/auth/verify-otp", { 
         email: form.email, 
-        otp: otpString 
+        otp: otpString,
+        name: form.name
       });
       
       if (response.data.success) {
