@@ -17,10 +17,10 @@ const sendOtp = async (req, res) => {
 // Verify OTP
 const checkOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, name } = req.body;
     if (!email || !otp) return res.status(400).json({ success: false, message: "Email and OTP are required" });
 
-    await verifyOtp(email, otp);
+    await verifyOtp(email, otp, name);
     res.json({ success: true, message: "OTP verified successfully" });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
@@ -33,7 +33,7 @@ const resendOtp = async (req, res) => {
     const { email, name } = req.body;
     if (!email || !name) return res.status(400).json({ success: false, message: "Email and Name are required" });
 
-    await createOtp(email); // just create a new OTP and send
+    await createOtp(email, name); // just create a new OTP and send
     res.json({ success: true, message: "OTP resent successfully" });
   } catch (error) {
     console.log(error);
