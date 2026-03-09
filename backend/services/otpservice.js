@@ -1,6 +1,6 @@
 // services/otpService.js
 import OTP from '../models/OTP.js';
-import { sendOtpEmail } from './emailService.js';
+import { sendOtpEmail, sendWelcomeEmail } from './emailService.js';
 
 const generateOtp = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
@@ -23,7 +23,7 @@ const createOtp = async (email, name) => {
 };
 
 // Verify OTP
-const verifyOtp = async (email, userOtp) => {
+const verifyOtp = async (email, userOtp, name) => {
   const record = await OTP.findOne({ email });
   if (!record) {
     throw new Error('OTP not found. Please request a new one.');
@@ -42,6 +42,7 @@ const verifyOtp = async (email, userOtp) => {
 
   // OTP valid: delete record to prevent reuse
   await OTP.deleteOne({ email });
+  await sendWelcomeEmail(email, name);
   return true;
 };
 
