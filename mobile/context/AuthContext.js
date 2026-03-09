@@ -17,8 +17,6 @@ export const AuthProvider = ({ children }) => {
             const token = await getToken();
             const user_info = await getUser();
 
-            // console.log("Backend info:", backend_info);
-
             if(token && user_info){
                 setUserToken(token);
                 setUser(user_info);
