@@ -144,9 +144,9 @@ const Header = ({ onLoginPress, onSearch }) => {
           placeholder="Search videos..."
           placeholderTextColor={theme.textSecondary}
           value={searchQuery}
-          onChangeText={handleSearch}
+          onChangeText={setSearchQuery}
           returnKeyType="search"
-          onSubmitEditing={() => onSearch?.(searchQuery)}
+          onSubmitEditing={() => handleSearch(searchQuery)}
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity onPress={() => handleSearch('')}>
