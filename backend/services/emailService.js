@@ -1,31 +1,9 @@
 // services/emailService.js
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import dotenv from 'dotenv'
 dotenv.config()
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: Number(process.env.EMAIL_PORT),
-  secure: process.env.EMAIL_SECURE === "true",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  logger: process.env.NODE_ENV === "development",
-  debug: process.env.NODE_ENV === "development",
-  connectionTimeout: 10000,
-  family: 4, // force IPv4
-});
-
-// Verify transporter connection
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ Email transporter verification failed:", error);
-  } else {
-    console.log("✅ Email server is ready to send messages");
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 /**
  * Generic email sender function
@@ -40,14 +18,15 @@ transporter.verify((error, success) => {
 export const sendEmail = async ({ to, subject, html, text, from }) => {
   try {
     const mailOptions = {
-      from: from || `"MA Video Hub" <${process.env.EMAIL_FROM}>`,
+      from: process.env.RESEND_EMAIL_FROM,
       to,
       subject,
       html,
       text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML for plain text fallback
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    // const info = await transporter.sendMail(mailOptions);
+    const info = await resend.emails.send(mailOptions)
     console.log(`✅ Email sent to ${to}: ${info.messageId}`);
     
     return {
