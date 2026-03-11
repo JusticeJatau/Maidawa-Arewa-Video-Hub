@@ -88,7 +88,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
       try {
         setLoading(true);
         const response = await api.get(`/videos/${videoId}`);
-        setVideo(normalizeVideo(response.data));
+        setVideo(response.data);
 
         setLike({
           count: response.data.likes,
@@ -104,7 +104,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
         const relatedVideosRaw = relatedVideosResponse.data.data.filter(
           v => v.category?._id === response.data.category?._id && v._id !== videoId
         );
-        setRelatedVideos(normalizeVideos(relatedVideosRaw));
+        setRelatedVideos(relatedVideosRaw);
       } catch (error) {
         console.log('Video fetch error:', error.message);
       } finally {
@@ -478,7 +478,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
           {video.category && (
             <View style={styles.categoryContainer}>
               <MaterialIcons name="folder" size={16} color={theme.primary} />
-              <Text style={styles.category}>{video.category}</Text>
+              <Text style={styles.category}>{video.category?.name || "Uncategorized"}</Text>
             </View>
           )}
         </View>
