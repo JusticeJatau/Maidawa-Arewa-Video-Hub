@@ -17,6 +17,8 @@ coverage
 .env.*.local
 .todo
 
+sendEmail.js
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
