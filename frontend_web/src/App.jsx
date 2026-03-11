@@ -8,6 +8,7 @@ import Categories from './pages/Categories';
 import Users from './pages/Users';
 import AdminRoute from './components/AdminRoute';
 import EditVideo from './pages/EditVideo';
+import AddVideo from './pages/AddVideo';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="categories" element={<AdminRoute><Categories /></AdminRoute>} />
           <Route path="users" element={<AdminRoute><Users/></AdminRoute>} />
           <Route path="videos/edit/:videoId" element={<AdminRoute><EditVideo/></AdminRoute>} />
+          <Route path="videos/add" element={<AdminRoute><AddVideo/></AdminRoute>} />
         </Route>
       </Routes>
     </Router>
