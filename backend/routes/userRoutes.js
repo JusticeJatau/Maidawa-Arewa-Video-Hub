@@ -1,4 +1,4 @@
-import { getUsers, editUser, deleteUser, updateRole } from "../controllers/userController.js";
+import { getUsers, editUser, deleteUser } from "../controllers/userController.js";
 import express from 'express'
 import { auth } from "../middleware/authMiddleware.js";
 
