@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 
 const VideoCard = ({ video, onPress }) => {
   const { theme } = useTheme();
+  console.log("Thumbnail: ", video.thumbnailUrl)
 
   const formatViews = (views) => {
     if (views >= 1000000) {
@@ -222,7 +223,7 @@ const VideoCard = ({ video, onPress }) => {
         {video.category && (
           <View style={styles.categoryContainer}>
             <MaterialIcons name="folder" size={12} color={theme.primary} />
-            <Text style={styles.category}>{video.category}</Text>
+            <Text style={styles.category}>{video.category?.name || "Uncategorized"}</Text>
           </View>
         )}
       </View>
