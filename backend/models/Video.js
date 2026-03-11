@@ -49,5 +49,9 @@ const videoSchema = new mongoose.Schema({
   }
 );
 
+videoSchema.index({ status: 1, publishedAt: -1 });
+videoSchema.index({ category: 1 });
+videoSchema.index({ title: 'text' });
+
 const Video = mongoose.model("Video", videoSchema);
 export default Video;
