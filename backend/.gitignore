@@ -15,6 +15,7 @@ uploads
 coverage
 .env
 .env.*.local
+.todo
 
 # Editor directories and files
 .vscode/*
