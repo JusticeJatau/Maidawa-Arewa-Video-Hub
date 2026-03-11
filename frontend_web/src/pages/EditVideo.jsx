@@ -63,14 +63,13 @@ const EditVideo = () => {
         category: videoData.category?._id || videoData.category || '',
         source: videoData.source || 'youtube',
 
-        // ✅ append full URL
-        videoUrl: videoData.videoUrl
-          ? `${import.meta.env.VITE_BACKEND}${videoData.videoUrl}`
-          : '',
+        videoUrl: videoData.videoUrl?.startsWith("https")
+          ? videoData.videoUrl
+          : `${import.meta.env.VITE_BACKEND}${videoData.videoUrl}`,
 
-        thumbnailUrl: videoData.thumbnailUrl
-          ? `${import.meta.env.VITE_BACKEND}${videoData.thumbnailUrl}`
-          : '',
+        thumbnailUrl: videoData.thumbnailUrl?.startsWith("https")
+          ? videoData.thumbnailUrl
+          : `${import.meta.env.VITE_BACKEND}${videoData.thumbnailUrl}`,
 
         tags: videoData.tags || [],
         isPublished: videoData.status === 'published',
