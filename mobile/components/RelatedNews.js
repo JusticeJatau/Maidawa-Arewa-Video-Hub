@@ -1,8 +1,5 @@
-import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import colors from '../constants/colors';
-import { SERVER_BASE } from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 
 const RelatedNews = ({ videos, onPress }) => {
