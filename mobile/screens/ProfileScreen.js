@@ -261,7 +261,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* Personal Information Section */}
         {isLoggedIn? (
           <View>
-            <SectionCard>
+            <SectionCard style={styles.sectionParent}>
               <SectionHeader
                 title="Personal Information"
                 icon="person-outline"
@@ -275,7 +275,7 @@ const ProfileScreen = ({ navigation }) => {
               </View>
             </SectionCard>
             
-            <SectionCard>
+            <SectionCard style={styles.sectionParent}>
               {/*Contact Information Section */}
               <SectionHeader
                 title="Contact Information"
@@ -290,7 +290,7 @@ const ProfileScreen = ({ navigation }) => {
               </View>
             </SectionCard>
 
-            <SectionCard>
+            <SectionCard style={styles.sectionParent}>
             {/* Preferences Section */}
               <SectionHeader title="Preferences" icon="settings" />
               <View style={styles.sectionContent}>
@@ -315,7 +315,7 @@ const ProfileScreen = ({ navigation }) => {
               </View>
             </SectionCard>
 
-            <SectionCard>
+            <SectionCard style={styles.sectionParent}>
             {/* Account Actions Section */}
               <SectionHeader title="Account" icon="security" />
               <View style={styles.sectionContent}>
@@ -352,7 +352,7 @@ const ProfileScreen = ({ navigation }) => {
         {/* App Info */}
         <View style={styles.appInfo}>
           <Text style={styles.appVersion}>MA Video Hub v1.0.0</Text>
-          <Text style={styles.appCopyright}>© 2024 All rights reserved</Text>
+          <Text style={styles.appCopyright}>© 2026 All rights reserved</Text>
         </View>
       </ScrollView>
 
@@ -577,6 +577,9 @@ const createStyles = (theme) => StyleSheet.create({
     color: theme.primary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  sectionParent:{
+    marginBottom: 20,
   },
   sectionContent: {
     paddingHorizontal: 20,
