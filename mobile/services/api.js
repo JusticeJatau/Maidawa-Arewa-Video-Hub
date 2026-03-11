@@ -1,10 +1,10 @@
 import axios from "axios";
 import { getToken } from "./auth";
+import { EXPO_PUBLIC_API_BASE, EXPO_PUBLIC_PAGE_LIMIT } from '@env';
 
-// const API_BASE = "https://ma-video-hub-backend.onrender.com/api";
-const API_BASE = "http://192.168.73.228:5000/api";
-const PAGE_LIMIT = 10;
-const SERVER_BASE = API_BASE.replace(/\/api$/, ''); // remove trailing /api
+const API_BASE = EXPO_PUBLIC_API_BASE;
+const PAGE_LIMIT = Number(EXPO_PUBLIC_PAGE_LIMIT);
+const SERVER_BASE = API_BASE.replace(/\/api$/, '');
 
 // create axios instance
 const api = axios.create({
@@ -32,6 +32,10 @@ api.interceptors.request.use(
  * Prepares a video object for frontend use
  * - prepends SERVER_BASE to videoUrl and thumbnailUrl
  * - ensures category is a string
+ */
+/**
+ * For offline use online when node acts as server
+ * 
  */
 export const normalizeVideo = (video) => ({
   ...video,
