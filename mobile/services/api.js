@@ -15,13 +15,13 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     try {
-      // get token from async storage or wherever you store it
-      const token = await getToken(); // implement getToken() to fetch from AsyncStorage
+      const token = await getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (err) {
-      console.log("Error attaching token:", err);
+      console.log("Warning: could not attach token:", err);
+      // don't throw — just continue without token
     }
     return config;
   },
