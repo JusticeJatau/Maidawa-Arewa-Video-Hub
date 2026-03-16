@@ -66,6 +66,14 @@ export const getUser = async () => {
   }
 };
 
+export const removeUser = async () =>{
+  try {
+    await AsyncStorage.removeItem("user_info");
+  } catch (error) {
+    console.error("Error removing token from storage:", error);
+  }
+}
+
 export const saveBackendData = async(data)=>{
   try {
     await AsyncStorage.setItem("backend_info", JSON.stringify(data));
