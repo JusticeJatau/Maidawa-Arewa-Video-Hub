@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useState, useContext, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Image,
   Modal,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { ProfileScreenSkeleton } from '../components/Skeleton';
+import api from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -25,17 +27,18 @@ const ProfileScreen = ({ navigation }) => {
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   
-  const { user, logout, isLoggedIn, loading } = useContext(AuthContext);
+  const { user, logout, isLoggedIn, loading, updateUser } = useContext(AuthContext);
   console.log("User", user)
   
   // State for edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Profile data states
+  // Profile data states - matching your schema exactly
   const [profileImage, setProfileImage] = useState(user?.avatar || null);
   const [personalInfo, setPersonalInfo] = useState({
-    fullName: user?.name || '',
+    name: user?.name || '', // Changed from fullName to match schema
     username: user?.username || '',
     email: user?.email || '',
     bio: user?.bio || '',
@@ -49,10 +52,25 @@ const ProfileScreen = ({ navigation }) => {
   });
   
   const [preferences, setPreferences] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    saveHistory: true,
+    emailNotifications: user?.preferences?.emailNotifications ?? true,
+    pushNotifications: user?.preferences?.pushNotifications ?? true,
+    saveHistory: user?.preferences?.saveHistory ?? true,
   });
+
+  // Track original values for cancel
+  const [originalData, setOriginalData] = useState({});
+
+  // Store original data when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      setOriginalData({
+        personalInfo: { ...personalInfo },
+        contactInfo: { ...contactInfo },
+        preferences: { ...preferences },
+        profileImage: profileImage
+      });
+    }
+  }, [isEditing]);
 
   const handleImagePick = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,6 +85,7 @@ const ProfileScreen = ({ navigation }) => {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {
@@ -74,14 +93,97 @@ const ProfileScreen = ({ navigation }) => {
     }
   };
 
-  const handleSave = () => {
-    // Here you would make API call to save changes
-    setIsEditing(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+  const uploadProfileImage = async (imageAsset) => {
+    try {
+      const formData = new FormData();
+      formData.append('avatar', {
+        uri: imageAsset.uri,
+        type: 'image/jpeg',
+        name: 'profile.jpg',
+      });
+
+      const response = await api.post('/users/upload-avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      return response.data.avatarUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Prepare the update data - matching your schema field names
+      const updateData = {
+        name: personalInfo.name, // Changed from fullName
+        username: personalInfo.username,
+        email: personalInfo.email,
+        bio: personalInfo.bio,
+        phone: contactInfo.phone,
+        address: contactInfo.address,
+        city: contactInfo.city,
+        country: contactInfo.country,
+        preferences: preferences,
+      };
+
+      // Remove empty strings to keep schema clean
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === '') {
+          if (key === 'bio' || key === 'address' || key === 'city' || key === 'country') {
+            // Keep empty strings for fields with default ''
+            updateData[key] = '';
+          } else {
+            delete updateData[key];
+          }
+        }
+      });
+
+      // If profile image changed and it's a local URI (not a URL), upload it
+      if (profileImage && profileImage !== user?.avatar && !profileImage.startsWith('http')) {
+        try {
+          const imageAsset = { uri: profileImage };
+          const avatarUrl = await uploadProfileImage(imageAsset);
+          updateData.avatar = avatarUrl;
+        } catch (uploadError) {
+          Alert.alert('Warning', 'Profile picture upload failed, but other changes will be saved.');
+        }
+      } else if (profileImage && profileImage.startsWith('http')) {
+        // If it's already a URL (existing avatar), just include it
+        updateData.avatar = profileImage;
+      }
+
+      // Make API call to update user profile
+      const response = await api.put(`/users/edit/${user.id}`, updateData);
+      
+      if (response.data.success) {
+        // Update user context with new data
+        updateUser(response.data.user);
+        
+        setIsEditing(false);
+        Alert.alert('Success', 'Profile updated successfully!');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to update profile. Please try again.'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
     // Reset to original values
+    setPersonalInfo(originalData.personalInfo);
+    setContactInfo(originalData.contactInfo);
+    setPreferences(originalData.preferences);
+    setProfileImage(originalData.profileImage);
     setIsEditing(false);
   };
 
@@ -114,7 +216,7 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
-  const InfoRow = ({ label, value, icon, field, multiline = false }) => (
+  const InfoRow = ({ label, value, icon, field, multiline = false, keyboardType = 'default' }) => (
     <View style={styles.infoRow}>
       <View style={styles.infoIconContainer}>
         <MaterialIcons name={icon} size={18} color={theme.textTertiary} />
@@ -136,8 +238,12 @@ const ProfileScreen = ({ navigation }) => {
               }
             }}
             placeholderTextColor={theme.textTertiary}
+            placeholder={`Enter ${label.toLowerCase()}`}
             multiline={multiline}
             numberOfLines={multiline ? 3 : 1}
+            editable={!isSaving}
+            keyboardType={keyboardType}
+            autoCapitalize={field === 'personal.email' ? 'none' : 'words'}
           />
         ) : (
           <Text style={styles.infoValue}>{value || 'Not provided'}</Text>
@@ -160,12 +266,18 @@ const ProfileScreen = ({ navigation }) => {
         trackColor={{ false: theme.border, true: theme.primary }}
         thumbColor={theme.text}
         ios_backgroundColor={theme.border}
+        disabled={!isEditing || isSaving}
       />
     </View>
   );
 
   const ActionItem = ({ icon, label, onPress, danger = false, rightText }) => (
-    <TouchableOpacity style={styles.actionItem} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={styles.actionItem} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+      disabled={isSaving}
+    >
       <View style={styles.actionLeft}>
         <View style={[styles.iconCircle, { 
           backgroundColor: danger ? theme.danger + '20' : theme.primary + '20',
@@ -184,7 +296,7 @@ const ProfileScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  //Show prfile screen skeleton
+  //Show profile screen skeleton
   if(loading){
     return <ProfileScreenSkeleton/>
   }
@@ -200,17 +312,32 @@ const ProfileScreen = ({ navigation }) => {
           onPress={() => navigation.goBack()} 
           style={styles.backButton}
           activeOpacity={0.7}
+          disabled={isSaving}
         >
           <MaterialIcons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Profile</Text>
         {isEditing ? (
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={handleCancel} style={styles.cancelButton} activeOpacity={0.7}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+            <TouchableOpacity 
+              onPress={handleCancel} 
+              style={styles.cancelButton} 
+              activeOpacity={0.7}
+              disabled={isSaving}
+            >
+              <Text style={[styles.cancelButtonText, isSaving && styles.disabledText]}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleSave} style={styles.saveButton} activeOpacity={0.7}>
-              <Text style={styles.saveButtonText}>Save</Text>
+            <TouchableOpacity 
+              onPress={handleSave} 
+              style={[styles.saveButton, isSaving && styles.disabledButton]} 
+              activeOpacity={0.7}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator size="small" color={theme.text} />
+              ) : (
+                <Text style={styles.saveButtonText}>Save</Text>
+              )}
             </TouchableOpacity>
           </View>
         ) : (
@@ -227,7 +354,7 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.profileHeaderCard}>
           <TouchableOpacity 
             onPress={handleImagePick}
-            disabled={!isEditing}
+            disabled={!isEditing || isSaving}
             style={styles.profileImageContainer}
             activeOpacity={0.8}
           >
@@ -236,11 +363,11 @@ const ProfileScreen = ({ navigation }) => {
             ) : (
               <View style={styles.profileImagePlaceholder}>
                 <Text style={styles.profileImagePlaceholderText}>
-                  {personalInfo.fullName.charAt(0) || "U"}
+                  {personalInfo.name?.charAt(0) || user?.name?.charAt(0) || "U"}
                 </Text>
               </View>
             )}
-            {isEditing && (
+            {isEditing && !isSaving && (
               <View style={styles.cameraIconContainer}>
                 <MaterialIcons name="camera-alt" size={16} color={theme.text} />
               </View>
@@ -248,18 +375,19 @@ const ProfileScreen = ({ navigation }) => {
           </TouchableOpacity>
           
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{personalInfo.fullName}</Text>
-            {/* {isLoggedIn && <Text style={styles.profileUsername}>@{personalInfo.username}</Text>} */}
-            {user?.username? <Text style={styles.profileUsername}>@{user?.username}</Text> : null}
+            <Text style={styles.profileName}>{personalInfo.name || user?.name}</Text>
+            {user?.username ? <Text style={styles.profileUsername}>@{user?.username}</Text> : null}
             <View style={styles.memberBadge}>
               <MaterialIcons name="calendar-today" size={14} color={theme.textTertiary} />
-              <Text style={styles.memberSince}>Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : 'Unknown'}</Text>
+              <Text style={styles.memberSince}>
+                Member since {user?.createdAt ? new Date(user.createdAt).getFullYear() : 'Unknown'}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Personal Information Section */}
-        {isLoggedIn? (
+        {isLoggedIn ? (
           <View>
             <SectionCard style={styles.sectionParent}>
               <SectionHeader
@@ -268,10 +396,32 @@ const ProfileScreen = ({ navigation }) => {
                 onEdit={() => setIsEditing(true)}
               />
               <View style={styles.sectionContent}>
-                <InfoRow label="Full Name" value={personalInfo.fullName} icon="badge" field="personal.fullName" />
-                <InfoRow label="Username" value={personalInfo.username} icon="alternate-email" field="personal.username" />
-                <InfoRow label="Email" value={personalInfo.email} icon="email" field="personal.email" />
-                <InfoRow label="Bio" value={personalInfo.bio} icon="description" field="personal.bio" multiline />
+                <InfoRow 
+                  label="Full Name" 
+                  value={personalInfo.name} // Changed from fullName
+                  icon="badge" 
+                  field="personal.name" // Changed from personal.fullName
+                />
+                <InfoRow 
+                  label="Username" 
+                  value={personalInfo.username} 
+                  icon="alternate-email" 
+                  field="personal.username" 
+                />
+                <InfoRow 
+                  label="Email" 
+                  value={personalInfo.email} 
+                  icon="email" 
+                  field="personal.email" 
+                  keyboardType="email-address"
+                />
+                <InfoRow 
+                  label="Bio" 
+                  value={personalInfo.bio} 
+                  icon="description" 
+                  field="personal.bio" 
+                  multiline 
+                />
               </View>
             </SectionCard>
             
@@ -283,10 +433,31 @@ const ProfileScreen = ({ navigation }) => {
                 onEdit={() => setIsEditing(true)}
               />
               <View style={styles.sectionContent}>
-                <InfoRow label="Phone" value={contactInfo.phone} icon="phone" field="contact.phone" />
-                <InfoRow label="Address" value={contactInfo.address} icon="location-on" field="contact.address" />
-                <InfoRow label="City" value={contactInfo.city} icon="location-city" field="contact.city" />
-                <InfoRow label="Country" value={contactInfo.country} icon="public" field="contact.country" />
+                <InfoRow 
+                  label="Phone" 
+                  value={contactInfo.phone} 
+                  icon="phone" 
+                  field="contact.phone" 
+                  keyboardType="phone-pad"
+                />
+                <InfoRow 
+                  label="Address" 
+                  value={contactInfo.address} 
+                  icon="location-on" 
+                  field="contact.address" 
+                />
+                <InfoRow 
+                  label="City" 
+                  value={contactInfo.city} 
+                  icon="location-city" 
+                  field="contact.city" 
+                />
+                <InfoRow 
+                  label="Country" 
+                  value={contactInfo.country} 
+                  icon="public" 
+                  field="contact.country" 
+                />
               </View>
             </SectionCard>
 
@@ -343,7 +514,7 @@ const ProfileScreen = ({ navigation }) => {
               </View>
             </SectionCard>
           </View>
-        ):(
+        ) : (
           <View>
             <Text style={styles.placeholderText}>Log in to View your Info</Text>
           </View>
@@ -438,11 +609,19 @@ const createStyles = (theme) => StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 16,
     borderRadius: 20,
+    minWidth: 60,
+    alignItems: 'center',
   },
   saveButtonText: {
     color: theme.text,
     fontSize: 15,
     fontWeight: '600',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    opacity: 0.5,
   },
   placeholder: {
     width: 40,
@@ -683,7 +862,7 @@ const createStyles = (theme) => StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: theme.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -745,7 +924,7 @@ const createStyles = (theme) => StyleSheet.create({
     backgroundColor: theme.danger,
   },
   modalConfirmText: {
-    color: theme.text,
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
   },
