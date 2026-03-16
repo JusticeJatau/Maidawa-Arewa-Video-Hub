@@ -1,9 +1,7 @@
 // services/emailService.js
-import { Resend } from "resend";
-import dotenv from 'dotenv'
-dotenv.config()
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import brevo from "../config/brevo.js";
+// import dotenv from 'dotenv'
+// dotenv.config()
 
 /**
  * Generic email sender function
@@ -17,24 +15,27 @@ const resend = new Resend(process.env.RESEND_API_KEY)
  */
 export const sendEmail = async ({ to, subject, html, text, from }) => {
   try {
-    const mailOptions = {
-      from: process.env.RESEND_EMAIL_FROM,
-      to,
+    const result = await brevo.transactionalEmails.sendTransacEmail({
       subject,
-      html,
-      text: text || html.replace(/<[^>]*>/g, ''), // Strip HTML for plain text fallback
-    };
+      htmlContent: html,
+      textContent: text || html.replace(/<[^>]*>/g, ""),
+      sender: {
+        name: process.env.BREVO_SENDER_NAME,
+        email: from || process.env.BREVO_EMAIL_FROM,
+      },
+      to: Array.isArray(to)
+        ? to.map((email) => ({ email }))
+        : [{ email: to }],
+    });
 
-    // const info = await transporter.sendMail(mailOptions);
-    const info = await resend.emails.send(mailOptions)
-    console.log(`✅ Email sent to ${to}: ${info.messageId}`);
-    
+    console.log(`✅ Email sent to ${to}:`, result.messageId);
+
     return {
       success: true,
-      messageId: info.messageId,
+      messageId: result.messageId,
     };
   } catch (error) {
-    console.error("❌ Error sending email:", error);
+    console.error("❌ Brevo error:", error);
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };
