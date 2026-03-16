@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { getToken, getUser, removeToken, getBackendData } from "../services/auth";
+import { getToken, getUser, removeToken, getBackendData, removeUser } from "../services/auth";
 import { Alert } from "react-native";
 import { SERVER_BASE, api } from "../services/api";
 
@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }) => {
         await removeToken();
         setUserToken(null);
         setIsLoggedIn(false)
+        removeUser()
     }
 
     const login = async(token, user_info) => {
