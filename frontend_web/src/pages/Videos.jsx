@@ -218,6 +218,15 @@ const Videos = () => {
     }
   };
 
+  function getYouTubeThumbnail(url) {
+    let videoId = null;
+    const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([^&]+)/;
+    const match = url.match(regex);
+    if (match && match[1]) videoId = match[1];
+    if (!videoId) return null;
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+
   // Calculate stats
   const totalViews = videos.reduce((sum, video) => sum + (video.views || 0), 0);
   const publishedCount = videos.filter(v => v.status === 'published').length;
@@ -419,7 +428,7 @@ const Videos = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-16 w-28 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
                             <img
-                              src={video.thumbnailUrl || 'https://via.placeholder.com/160x90?text=No+Thumbnail'}
+                              src={video.source === "youtube"? getYouTubeThumbnail(video.videoUrl):video.thumbnailUrl}
                               alt={video.title}
                               className="h-full w-full object-cover"
                               onError={(e) => {
