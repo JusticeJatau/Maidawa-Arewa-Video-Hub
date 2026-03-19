@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { WebView } from 'react-native-webview';
 import { MaterialIcons } from '@expo/vector-icons';
 import RelatedNews from '../components/RelatedNews';
 import { VideoPlayerSkeleton } from '../components/Skeleton';
@@ -10,6 +11,7 @@ import {api} from '../services/api';
 import { normalizeVideo, normalizeVideos } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { getYouTubeEmbedUrl } from '../services/api';
 
 const VideoPlayerScreen = ({ navigation, route }) => {
   const { theme } = useTheme();
@@ -365,7 +367,16 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
       {/* Video Player */}
       <View style={styles.videoPlayer}>
-        {video && (
+        {video?.source === "youtube" ? (
+          <WebView
+            source={{ uri: getYouTubeEmbedUrl(video.videoUrl) }}
+            style={styles.videoView}
+            javaScriptEnabled
+            domStorageEnabled
+            allowsFullscreenVideo
+            mediaPlaybackRequiresUserAction={false}
+          />
+        ) : (
           <VideoView
             style={styles.videoView}
             player={player}

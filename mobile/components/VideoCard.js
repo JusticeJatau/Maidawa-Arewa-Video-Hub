@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import colors from '../constants/colors';
 import { useTheme } from '../context/ThemeContext';
+import { getYouTubeThumbnail } from '../services/api';
 
 const VideoCard = ({ video, onPress }) => {
   const { theme } = useTheme();
-  console.log("Thumbnail: ", video.thumbnailUrl)
 
   const formatViews = (views) => {
     if (views >= 1000000) {
@@ -172,7 +172,9 @@ const VideoCard = ({ video, onPress }) => {
       {/* Thumbnail */}
       <View style={styles.thumbnailContainer}>
         <Image
-          source={{ uri: video.thumbnailUrl }}
+          source={{ 
+            uri: video.source === "youtube" ? getYouTubeThumbnail(video.videoUrl) : video.thumbnailUrl
+          }}
           style={styles.thumbnail}
           resizeMode="cover"
         />
