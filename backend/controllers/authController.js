@@ -60,15 +60,11 @@ const login = async (req, res) => {
         lastLogin: new Date(),
       })
 
+      const userObj = user.toObject();
+      delete userObj.password;
+
       res.status(200).json({
-        user:{
-          id: user._id,
-          name: user.name,
-          email: user.email, 
-          role: user.role,
-          createdAt: user.createdAt,
-          lastLogin: user.lastLogin
-        },
+        user: userObj,
         token: generateToken(user._id, user.role)
       });
     } else {
