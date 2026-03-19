@@ -2,8 +2,8 @@ import axios from "axios";
 import { getToken } from "./auth";
 import { EXPO_PUBLIC_API_BASE, EXPO_PUBLIC_PAGE_LIMIT } from '@env';
 
-const API_BASE = EXPO_PUBLIC_API_BASE;
-const PAGE_LIMIT = Number(EXPO_PUBLIC_PAGE_LIMIT);
+const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
+const PAGE_LIMIT = Number(process.env.EXPO_PUBLIC_PAGE_LIMIT);
 const SERVER_BASE = API_BASE.replace(/\/api$/, '');
 
 // create axios instance
@@ -43,6 +43,21 @@ export const normalizeVideo = (video) => ({
   videoUrl: video.videoUrl ? `${SERVER_BASE}${video.videoUrl}` : null,
   category: video.category?.name || 'Uncategorized',
 });
+
+export const getYouTubeEmbedUrl = (url) => {
+  const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([^&]+)/;
+  const match = url.match(regex);
+  if (!match) return null;
+
+  return `https://www.youtube.com/embed/${match[1]}?playsinline=1&rel=0`;
+};
+
+export const getYouTubeThumbnail = (url) => {
+  const regex = /(?:youtube\.com\/.*v=|youtu\.be\/)([^&]+)/;
+  const match = url.match(regex);
+  if (match && match[1]) return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
+  return null;
+};
 
 export const normalizeVideos = (videos) => videos.map(normalizeVideo);
 
