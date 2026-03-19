@@ -19,7 +19,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { AuthContext } from '../context/AuthContext';
 import { ProfileScreenSkeleton } from '../components/Skeleton';
-import api from '../services/api';
+import { api } from '../services/api';
+import { setUser } from '../services/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -158,11 +159,12 @@ const ProfileScreen = ({ navigation }) => {
       }
 
       // Make API call to update user profile
-      const response = await api.put(`/users/edit/${user.id}`, updateData);
+      const response = await api.put(`/users/edit/${user._id}`, updateData);
       
       if (response.data.success) {
         // Update user context with new data
         updateUser(response.data.user);
+        setUser(response.data.user)
         
         setIsEditing(false);
         Alert.alert('Success', 'Profile updated successfully!');
