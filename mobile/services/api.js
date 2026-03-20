@@ -1,6 +1,6 @@
 import axios from "axios";
 import { getToken } from "./auth";
-import { EXPO_PUBLIC_API_BASE, EXPO_PUBLIC_PAGE_LIMIT } from '@env';
+// import { EXPO_PUBLIC_API_BASE, EXPO_PUBLIC_PAGE_LIMIT } from '@env';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE;
 const PAGE_LIMIT = Number(process.env.EXPO_PUBLIC_PAGE_LIMIT);
