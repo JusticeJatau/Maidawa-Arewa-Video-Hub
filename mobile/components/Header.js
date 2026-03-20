@@ -107,7 +107,7 @@ const Header = ({ onLoginPress, onSearch }) => {
       marginLeft: 12,
       color: theme.text,
       fontSize: 16,
-      padding: 0,
+      width: '80%',
     },
   });
 
