@@ -263,18 +263,22 @@ const Categories = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
-          <p className="text-gray-600">Organize videos into categories</p>
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Category Management</h1>
+              <p className="text-gray-600">Organize videos into categories</p>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-sm hover:shadow-md"
+            >
+              <Plus size={18} className="mr-2" />
+              Add New Category
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-sm hover:shadow-md"
-        >
-          <Plus size={18} className="mr-2" />
-          Add New Category
-        </button>
       </div>
 
       {/* Stats Grid */}
