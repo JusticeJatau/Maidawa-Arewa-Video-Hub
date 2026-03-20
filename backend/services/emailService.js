@@ -1,7 +1,7 @@
 // services/emailService.js
-import brevo from "../config/brevo.js";
-// import dotenv from 'dotenv'
-// dotenv.config()
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
  * Generic email sender function
@@ -13,30 +13,31 @@ import brevo from "../config/brevo.js";
  * @param {string} [options.from] - Sender email (defaults to EMAIL_FROM)
  * @returns {Promise<Object>} - Result object
  */
+
 export const sendEmail = async ({ to, subject, html, text, from }) => {
   try {
-    const result = await brevo.transactionalEmails.sendTransacEmail({
+    // Send the email using Resend
+    const { data, error } = await resend.emails.send({
+      from: from || process.env.RESEND_EMAIL_FROM,
+      to,
       subject,
-      htmlContent: html,
-      textContent: text || html.replace(/<[^>]*>/g, ""),
-      sender: {
-        name: process.env.BREVO_SENDER_NAME,
-        email: from || process.env.BREVO_EMAIL_FROM,
-      },
-      to: Array.isArray(to)
-        ? to.map((email) => ({ email }))
-        : [{ email: to }],
+      html,
+      text,
     });
 
-    console.log(`✅ Email sent to ${to}:`, result.messageId);
+    // Check if Resend returned an error
+    if (error) {
+      console.error("❌ Resend API error:", error);
+      return { success: false, error };
+    }
 
-    return {
-      success: true,
-      messageId: result.messageId,
-    };
-  } catch (error) {
-    console.error("❌ Brevo error:", error);
-    throw new Error(`Failed to send email: ${error.message}`);
+    console.log(`✅ Email sent to ${to}:`, data?.id || "(no ID returned)");
+
+    return { success: true, id: data?.id || null };
+
+  } catch (err) {
+    console.error("❌ Exception while sending email:", err);
+    return { success: false, error: err };
   }
 };
 
