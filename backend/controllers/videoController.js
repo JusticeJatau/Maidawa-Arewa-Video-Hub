@@ -1,5 +1,6 @@
 import Video from "../models/Video.js";
 import Reaction from "../models/Reaction.js";
+import Comment from "../models/Comment.js"
 import mongoose from "mongoose";
 import { s3, B2_BUCKET_NAME, B2_PUBLIC_URL } from "../config/s3.js";
 import { DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
@@ -195,6 +196,7 @@ const getVideoById = async (req, res) => {
       }
     ]);
 
+    const comments = await Comment.countDocuments({ videoId: video._id });
     const likes = reactionStats[0].likes[0]?.count || 0;
     const dislikes = reactionStats[0].dislikes[0]?.count || 0;
     const userReaction = reactionStats[0].userReaction?.[0]?.type || null;
@@ -214,6 +216,7 @@ const getVideoById = async (req, res) => {
 
     res.json({
       ...videoObj,
+      comments,
       likes,
       dislikes,
       userReaction

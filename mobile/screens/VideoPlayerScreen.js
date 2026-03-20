@@ -26,7 +26,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
 
   const [like, setLike] = useState([]);
   const [dislike, setDislike] = useState([]);
-  const [comment, setComment] = useState([]);
+  const [comments, setComments] = useState();
   const [share, setShare] = useState([]);
 
   const handleReaction = async(type) => {
@@ -100,6 +100,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
           count: response.data.dislikes,
           userReaction: response.data.userReaction === "dislike"? true:false
         })
+        setComments(response.data.comments)
 
         const relatedVideosResponse = await api.get('/videos');
         
@@ -463,7 +464,7 @@ const VideoPlayerScreen = ({ navigation, route }) => {
                   <MaterialIcons name="comment" size={20} color={theme.textSecondary} />
                   <Text style={styles.actionText}>Comments</Text>
                 </TouchableOpacity>
-                <Text style={styles.actionText}>{comment?.count || 0}</Text>
+                <Text style={styles.actionText}>{comments || 0}</Text>
               </View>
 
               <View style={styles.flex}>
