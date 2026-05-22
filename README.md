@@ -68,6 +68,32 @@ The project consists of three parts:
 
 ---
 
+## 📸 Screenshots
+
+### 🖥️ Admin Dashboard
+
+| Login | Dashboard | Video Management |
+|---|---|---|
+| ![Admin Login](./screenshots/admin%20login.png) | ![Dashboard](./screenshots/admin%20dashboard.png) | ![Videos](./screenshots/admin%20video%20management%20page.png) |
+
+| Category Management | User Management |
+|---|---|
+| ![Categories](./screenshots/admin%20category%20management%20page.png) | ![Users](./screenshots/admin%20user%20management%20page.png) |
+
+---
+
+### 📱 Mobile App
+
+| Login | Home | Video Player |
+|---|---|---|
+| ![Login](./screenshots/login%20screen.png) | ![Home](./screenshots/Home%20screen%20dark.png) | ![Video](./screenshots/video%20screen%20dark.png) |
+
+| Comments | Profile | Settings |
+|---|---|---|
+| ![Comments](./screenshots/comment%20screen.png) | ![Profile](./screenshots/Profile%20screen.png) | ![Settings](./screenshots/Settings%20screen.png) |
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -235,3 +261,4 @@ This project is private and built specifically for **Maidawa Arewa News Media**.
 ---
 
 > Built with 💪 from Nigeria — proof that great software can come from anywhere.
+> 
