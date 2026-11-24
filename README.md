@@ -181,7 +181,7 @@ The backend acts as the central communication layer between the client applicati
 | Database | MongoDB Atlas |
 | Cloud Storage | Backblaze B2 |
 | Authentication | JSON Web Tokens (JWT) |
-| Email Verification | Email service integration |
+| Email Verification | Resend |
 | Frontend Hosting | Vercel |
 | Backend Hosting | Render |
 | Version Control | Git and GitHub |
